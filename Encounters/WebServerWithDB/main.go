@@ -32,13 +32,11 @@ func initDB() *gorm.DB {
 	return database
 }
 
-func startServer(handler *handler.StudentHandler) {
+func startEncounterServer(handler *handler.EncounterHandler) {
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.HandleFunc("/students/{id}", handler.Get).Methods("GET")
-	router.HandleFunc("/students", handler.Create).Methods("POST")
+	router.HandleFunc("/encounters/misc", handler.CreateMiscEncounter).Methods("POST")
 
-	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
 	println("Server starting")
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
@@ -49,9 +47,8 @@ func main() {
 		print("FAILED TO CONNECT TO DB")
 		return
 	}
-	repo := &repo.StudentRepository{DatabaseConnection: database}
-	service := &service.StudentService{StudentRepo: repo}
-	handler := &handler.StudentHandler{StudentService: service}
-
-	startServer(handler)
+	encounterRepo := &repo.EncounterRepository{DatabaseConnection: database}
+	encounterService:= &service.EncounterService{EncounterRepo: encounterRepo}
+	encounterHandler:= &handler.EncounterHandler{EncounterService: encounterService}
+	startEncounterServer(encounterHandler)
 }
