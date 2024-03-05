@@ -1,7 +1,10 @@
 package model
 
-
+import (
+	"github.com/google/uuid"
+)
 type SocialEncounter struct {
-	Encounter
+	EncounterId   uuid.UUID `gorm:"primaryKey"`
+	Encounter Encounter
 	PeopleNumber int
 }

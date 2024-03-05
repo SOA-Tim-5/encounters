@@ -1,10 +1,11 @@
 package model
 
 import (
-	
+	"github.com/google/uuid"
 )
 
 type KeyPointEncounter struct {
-	Encounter
+	EncounterId   uuid.UUID `gorm:"primaryKey"`
+	Encounter Encounter
 	KeyPointId int
 }
