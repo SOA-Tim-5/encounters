@@ -5,7 +5,6 @@ import (
 	"database-example/service"
 	"encoding/json"
 	"net/http"
-
 )
 
 type EncounterHandler struct {
@@ -13,14 +12,15 @@ type EncounterHandler struct {
 }
 
 func (handler *EncounterHandler) CreateMiscEncounter(writer http.ResponseWriter, req *http.Request) {
-	var miscEncounter model.MiscEncounter
-	err := json.NewDecoder(req.Body).Decode(&miscEncounter)
+	var miscEncounterDto model.MiscEncounterDto
+	err := json.NewDecoder(req.Body).Decode(&miscEncounterDto)
 	if err != nil {
 		println("Error while parsing json")
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	err = handler.EncounterService.CreateMiscEncounter(&miscEncounter)
+
+	//err = handler.EncounterService.CreateMiscEncounter(&miscEncounterDto)
 	if err != nil {
 		println("Error while creating a new misc encounter")
 		writer.WriteHeader(http.StatusExpectationFailed)

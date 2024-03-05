@@ -7,6 +7,7 @@ import (
 	"database-example/service"
 	"log"
 	"net/http"
+
 	"gorm.io/driver/postgres"
 
 	"github.com/gorilla/mux"
@@ -22,12 +23,11 @@ func initDB() *gorm.DB {
 		return nil
 	}
 
-	err=database.AutoMigrate(&model.Encounter{},&model.HiddenLocationEncounter{},&model.SocialEncounter{},
-		&model.KeyPointEncounter{},&model.MiscEncounter{})
+	err = database.AutoMigrate(&model.Encounter{}, &model.HiddenLocationEncounter{}, &model.SocialEncounter{},
+		&model.KeyPointEncounter{}, &model.MiscEncounter{})
 	if err != nil {
 		log.Fatalf("Error migrating models: %v", err)
 	}
-
 
 	return database
 }
@@ -38,7 +38,7 @@ func startEncounterServer(handler *handler.EncounterHandler) {
 	router.HandleFunc("/encounters/misc", handler.CreateMiscEncounter).Methods("POST")
 
 	println("Server starting")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":80", router))
 }
 
 func main() {
@@ -48,7 +48,7 @@ func main() {
 		return
 	}
 	encounterRepo := &repo.EncounterRepository{DatabaseConnection: database}
-	encounterService:= &service.EncounterService{EncounterRepo: encounterRepo}
-	encounterHandler:= &handler.EncounterHandler{EncounterService: encounterService}
+	encounterService := &service.EncounterService{EncounterRepo: encounterRepo}
+	encounterHandler := &handler.EncounterHandler{EncounterService: encounterService}
 	startEncounterServer(encounterHandler)
 }
