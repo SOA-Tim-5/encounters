@@ -36,6 +36,9 @@ func startEncounterServer(handler *handler.EncounterHandler) {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc("/encounters/misc", handler.CreateMiscEncounter).Methods("POST")
+	router.HandleFunc("/encounters/social", handler.CreateSocialEncounter).Methods("POST")
+	router.HandleFunc("/encounters/hidden", handler.CreateHiddenLocationEncounter).Methods("POST")
+
 
 	println("Server starting")
 	log.Fatal(http.ListenAndServe(":81", router))

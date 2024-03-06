@@ -35,3 +35,54 @@ func (handler *EncounterHandler) CreateMiscEncounter(writer http.ResponseWriter,
 	writer.WriteHeader(http.StatusCreated)
 	writer.Header().Set("Content-Type", "application/json")
 }
+
+func (handler *EncounterHandler) CreateSocialEncounter(writer http.ResponseWriter, req *http.Request) {
+	var socialEncounterDto model.SocialEncounterDto
+	err := json.NewDecoder(req.Body).Decode(&socialEncounterDto)
+	if err != nil {
+		println("Error while parsing json")
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	newSocialEncounter := model.SocialEncounter{
+		Encounter:     model.Encounter{Title: socialEncounterDto.Title, Description: socialEncounterDto.Description,
+		Picture: socialEncounterDto.Picture, Longitude: socialEncounterDto.Longitude, Latitude: socialEncounterDto.Latitude,
+		Radius: socialEncounterDto.Radius, XpReward: socialEncounterDto.XpReward, Status: socialEncounterDto.Status,
+		Type: socialEncounterDto.Type},
+		PeopleNumber: socialEncounterDto.PeopleNumber,
+	}
+	err = handler.EncounterService.CreateSocialEncounter(&newSocialEncounter)
+	if err != nil {
+		println("Error while creating a new social encounter")
+		writer.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
+	writer.WriteHeader(http.StatusCreated)
+	writer.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *EncounterHandler) CreateHiddenLocationEncounter(writer http.ResponseWriter, req *http.Request) {
+	var hiddenLocationEncounterDto model.HiddenLocationEncounterDto
+	err := json.NewDecoder(req.Body).Decode(&hiddenLocationEncounterDto)
+	if err != nil {
+		println("Error while parsing json")
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	newHiddenLocationEncounter := model.HiddenLocationEncounter{
+		Encounter:     model.Encounter{Title: hiddenLocationEncounterDto.Title, Description: hiddenLocationEncounterDto.Description,
+		Picture: hiddenLocationEncounterDto.Picture, Longitude: hiddenLocationEncounterDto.Longitude, Latitude: hiddenLocationEncounterDto.Latitude,
+		Radius: hiddenLocationEncounterDto.Radius, XpReward: hiddenLocationEncounterDto.XpReward, Status: hiddenLocationEncounterDto.Status,
+		Type: hiddenLocationEncounterDto.Type},
+		PictureLongitude :hiddenLocationEncounterDto.PictureLongitude,
+		PictureLatitude :hiddenLocationEncounterDto.PictureLatitude,
+	}
+	err = handler.EncounterService.CreateHiddenLocationEncounter(&newHiddenLocationEncounter)
+	if err != nil {
+		println("Error while creating a new hidden location encounter")
+		writer.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
+	writer.WriteHeader(http.StatusCreated)
+	writer.Header().Set("Content-Type", "application/json")
+}
