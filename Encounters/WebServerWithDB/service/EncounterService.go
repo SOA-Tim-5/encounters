@@ -9,16 +9,7 @@ type EncounterService struct {
 	EncounterRepo *repo.EncounterRepository
 }
 
-func (service *EncounterService) CreateEncounter(encounter *model.Encounter) error {
-	err := service.EncounterRepo.CreateEncounter(encounter)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (service *EncounterService) CreateMiscEncounter(miscEncounter *model.MiscEncounterDto) error {
-	service.CreateEncounter(&miscEncounter.Encounter)
+func (service *EncounterService) CreateMiscEncounter(miscEncounter *model.MiscEncounter) error {
 	err := service.EncounterRepo.CreateMiscEncounter(miscEncounter)
 	if err != nil {
 		return err
