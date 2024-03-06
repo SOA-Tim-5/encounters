@@ -38,7 +38,7 @@ func startEncounterServer(handler *handler.EncounterHandler) {
 	router.HandleFunc("/encounters/misc", handler.CreateMiscEncounter).Methods("POST")
 
 	println("Server starting")
-	log.Fatal(http.ListenAndServe(":80", router))
+	log.Fatal(http.ListenAndServe(":81", router))
 }
 
 func main() {

@@ -17,7 +17,7 @@ func (service *EncounterService) CreateEncounter(encounter *model.Encounter) err
 	return nil
 }
 
-func (service *EncounterService) CreateMiscEncounter(miscEncounter *model.MiscEncounter) error {
+func (service *EncounterService) CreateMiscEncounter(miscEncounter *model.MiscEncounterDto) error {
 	service.CreateEncounter(&miscEncounter.Encounter)
 	err := service.EncounterRepo.CreateMiscEncounter(miscEncounter)
 	if err != nil {
