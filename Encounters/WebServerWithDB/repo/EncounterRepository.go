@@ -54,3 +54,22 @@ func (repo *EncounterRepository) CreateKeyPointEncounter(KeyPointEncounter *mode
 	println("Rows affected: ", dbResult.RowsAffected)
 	return nil
 }
+
+func (repo *EncounterRepository) UpdateEncounter(encounter *model.Encounter) error {
+	dbResult := repo.DatabaseConnection.Save(encounter)
+	if dbResult.Error != nil {
+		return dbResult.Error
+	}
+	println("Rows affected: ", dbResult.RowsAffected)
+	return nil
+}
+
+func (repo *EncounterRepository) GetEncounter(encounterId int64) *model.Encounter {
+	var encounter *model.Encounter
+	dbResult := repo.DatabaseConnection.Where("Id = ?", encounterId).First(&encounter)
+	if dbResult.Error != nil {
+		return nil
+	}
+	println("Found encounter")
+	return encounter
+}

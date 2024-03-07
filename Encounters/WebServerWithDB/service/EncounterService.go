@@ -40,3 +40,17 @@ func (service *EncounterService) CreateKeyPointEncounter(keyPointEncounter *mode
 	}
 	return nil
 }
+
+func (service *EncounterService) ActivateEncounter(encounterId int64, position *model.TouristPosition) error {
+	var encounter model.Encounter = *service.EncounterRepo.GetEncounter(encounterId)
+	err := model.Activate(&encounter, position.TouristId, position.Longitude, position.Latitude)
+	if err == nil {
+		return nil
+	}
+
+	err2 := service.EncounterRepo.UpdateEncounter(&encounter)
+	if err2 != nil {
+		return err2
+	}
+	return nil
+}
