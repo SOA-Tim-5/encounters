@@ -54,3 +54,13 @@ func (repo *EncounterRepository) CreateKeyPointEncounter(KeyPointEncounter *mode
 	println("Rows affected: ", dbResult.RowsAffected)
 	return nil
 }
+
+
+func (repo *EncounterRepository) FindTouristProgressByTouristId(id int64) (model.TouristProgress, error) {
+	touristProgress := model.TouristProgress{}
+	dbResult := repo.DatabaseConnection.First(&touristProgress, "user_id = ?", id)
+	if dbResult != nil {
+		return touristProgress, dbResult.Error
+	}
+	return touristProgress, nil
+}

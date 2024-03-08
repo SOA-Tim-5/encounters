@@ -5,6 +5,8 @@ import (
 	"database-example/service"
 	"encoding/json"
 	"net/http"
+	"github.com/gorilla/mux"
+	"strconv"
 )
 
 type EncounterHandler struct {
@@ -85,4 +87,21 @@ func (handler *EncounterHandler) CreateHiddenLocationEncounter(writer http.Respo
 	}
 	writer.WriteHeader(http.StatusCreated)
 	writer.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *EncounterHandler) FindTouristProgressByTouristId(writer http.ResponseWriter, req *http.Request) {
+	strid := mux.Vars(req)["id"]
+	id, err := strconv.ParseInt(strid, 10, 64)
+	touristProgress, err := handler.EncounterService.FindTouristProgressByTouristId(id)
+	writer.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		writer.WriteHeader(http.StatusNotFound)
+	 	return
+	}
+	touristProgressDto:=model.TouristProgressDto{
+		Xp: touristProgress.Xp,
+		Level: touristProgress.Level,
+	}
+	writer.WriteHeader(http.StatusOK)
+	json.NewEncoder(writer).Encode(touristProgressDto)
 }

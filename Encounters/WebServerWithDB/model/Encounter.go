@@ -1,8 +1,10 @@
 package model
 
 import (
-	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type EncounterStatus int
@@ -23,7 +25,7 @@ const (
 )
 
 type Encounter struct {
-	Id          uuid.UUID
+	Id          int64
 	Title       string
 	Description string
 	Picture     string
@@ -37,6 +39,8 @@ type Encounter struct {
 }
 
 func (encounter *Encounter) BeforeCreate(scope *gorm.DB) error {
-	encounter.Id = uuid.New()
-	return nil
+	currentTimestamp := time.Now().UnixNano() / int64(time.Microsecond)
+    uniqueID := uuid.New().ID()
+    encounter.Id = currentTimestamp + int64(uniqueID)
+    return nil
 }

@@ -24,7 +24,7 @@ func initDB() *gorm.DB {
 	}
 
 	err = database.AutoMigrate(&model.Encounter{}, &model.HiddenLocationEncounter{}, &model.SocialEncounter{},
-		&model.KeyPointEncounter{}, &model.MiscEncounter{})
+		&model.KeyPointEncounter{}, &model.MiscEncounter{},&model.TouristProgress{})
 	if err != nil {
 		log.Fatalf("Error migrating models: %v", err)
 	}
@@ -38,6 +38,7 @@ func startEncounterServer(handler *handler.EncounterHandler) {
 	router.HandleFunc("/encounters/misc", handler.CreateMiscEncounter).Methods("POST")
 	router.HandleFunc("/encounters/social", handler.CreateSocialEncounter).Methods("POST")
 	router.HandleFunc("/encounters/hidden", handler.CreateHiddenLocationEncounter).Methods("POST")
+	router.HandleFunc("/encounters/touristProgress/{id}", handler.FindTouristProgressByTouristId).Methods("GET")
 
 
 	println("Server starting")

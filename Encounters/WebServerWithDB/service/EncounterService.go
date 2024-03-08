@@ -3,6 +3,7 @@ package service
 import (
 	"database-example/model"
 	"database-example/repo"
+	"fmt"
 )
 
 type EncounterService struct {
@@ -39,4 +40,12 @@ func (service *EncounterService) CreateKeyPointEncounter(keyPointEncounter *mode
 		return err
 	}
 	return nil
+}
+
+func (service *EncounterService) FindTouristProgressByTouristId(id int64) (*model.TouristProgress, error) {
+	touristProgress, err := service.EncounterRepo.FindTouristProgressByTouristId(id)
+	if err != nil {
+		return nil, fmt.Errorf(fmt.Sprintf("menu item with id %s not found", id))
+	}
+	return &touristProgress, nil
 }
