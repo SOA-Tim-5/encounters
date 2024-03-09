@@ -49,3 +49,17 @@ func (service *EncounterService) FindTouristProgressByTouristId(id int64) (*mode
 	}
 	return &touristProgress, nil
 }
+
+func (service *EncounterService) CompleteHiddenLocationEncounter(encounterId int64, position *model.TouristPosition) error {
+	var encounter model.Encounter = *service.EncounterRepo.GetEncounter(encounterId)
+	err := model.Complete(&encounter, position.TouristId, position.Longitude, position.Latitude)
+	if err == nil {
+		return nil
+	}
+
+	err2 := service.EncounterRepo.UpdateEncounter(&encounter)
+	if err2 != nil {
+		return err2
+	}
+	return nil
+}
