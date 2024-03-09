@@ -64,3 +64,23 @@ func (repo *EncounterRepository) FindTouristProgressByTouristId(id int64) (model
 	}
 	return touristProgress, nil
 }
+
+func (repo *EncounterRepository) FindActiveEncounters() ([]model.Encounter, error) {
+	var activeEncounters []model.Encounter
+	dbResult := repo.DatabaseConnection.Find(&activeEncounters, "status = 0")
+	if dbResult.Error != nil {
+		return nil, dbResult.Error
+	}
+
+	return activeEncounters, nil
+}
+
+func (repo *EncounterRepository) FindAll() ([]model.Encounter, error) {
+	var encounters []model.Encounter
+	dbResult := repo.DatabaseConnection.Find(&encounters)
+	if dbResult.Error != nil {
+		return nil, dbResult.Error
+	}
+
+	return encounters, nil
+}

@@ -105,3 +105,6 @@ func (handler *EncounterHandler) FindTouristProgressByTouristId(writer http.Resp
 	writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(touristProgressDto)
 }
+
+
+

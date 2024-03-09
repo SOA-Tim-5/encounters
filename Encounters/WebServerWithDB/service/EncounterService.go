@@ -49,3 +49,22 @@ func (service *EncounterService) FindTouristProgressByTouristId(id int64) (*mode
 	}
 	return &touristProgress, nil
 }
+
+
+
+func (service *EncounterService) FindAllInRangeOf(range float64, userLongitude float64, userLatitude float64) ([]model.Encounter, error) {
+	allencounters, err := service.EncounterRepo.FindAll()
+	if err != nil {
+		return nil, fmt.Errorf(fmt.Sprintf("encounters not found"))
+	}
+	var encountersInRange []model.Encounter
+	for _, encounter := range allencounters {
+		if IsInRange(range, encounter.Longitude, encounter.Latitude, userLongitude, userLatitude) {
+			encountersInRange=append(encountersInRange,encounter)
+		}
+	}
+
+	return encountersInRange, nil
+}
+
+
