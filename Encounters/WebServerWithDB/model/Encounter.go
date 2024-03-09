@@ -3,7 +3,6 @@ package model
 import (
 	"gorm.io/gorm"
 	"time"
-
 	"github.com/google/uuid"
 
 	"math"
@@ -49,16 +48,11 @@ func (encounter *Encounter) BeforeCreate(scope *gorm.DB) error {
 }
 
 func IsInRangeOf(givenrange float64, longitude float64, latitude float64, userLongitude float64, userLatitude float64) bool {
-	var earthRadius float64 = 6371000
-	var latitude1=latitude*3.14/180
-	var longitude1=longitude*3.14/180
-	var latitude2=userLatitude*3.14/180
-	var longitude2=userLongitude*3.14/180
-	var latitudeDistance = latitude2 - latitude1
-	var longitudeDistance = longitude2 - longitude1
-	var a = math.Sin(latitudeDistance/2)*math.Sin(latitudeDistance/2) + math.Cos(latitude1)*math.Cos(latitude2) + math.Sin(longitudeDistance/2)*math.Sin(longitudeDistance/2)
-	var c = 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
-	var distance = earthRadius * c
+	if(longitude==userLongitude && latitude==userLatitude){
+		return true
+	}
+	var distance=math.Acos(math.Sin(3.14/180*(latitude))*math.Sin(3.14/180*(userLatitude))+math.Cos(3.14/180*(latitude))*math.Cos(3.14/180*userLatitude)*math.Cos(3.14/180*longitude-3.14/180*userLongitude))*6371000
+
 
 	return distance < givenrange
 }

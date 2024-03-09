@@ -16,6 +16,7 @@ const (
 
 type EncounterInstance struct {
 	Id      int64
+	EncounterId      int64
 	UserId  int64
     Status EncounterInstanceStatus
 	CompletionTime time.Time
