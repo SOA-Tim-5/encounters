@@ -5,6 +5,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"math"
+
 )
 
 type EncounterStatus int
@@ -45,7 +48,7 @@ func (encounter *Encounter) BeforeCreate(scope *gorm.DB) error {
     return nil
 }
 
-func IsInRangeOf(range float64, longitude float64, latitude float64, userLongitude float64, userLatitude float64) bool {
+func IsInRangeOf(givenrange float64, longitude float64, latitude float64, userLongitude float64, userLatitude float64) bool {
 	var earthRadius float64 = 6371000
 	var latitude1=latitude*3.14/180
 	var longitude1=longitude*3.14/180
@@ -57,5 +60,5 @@ func IsInRangeOf(range float64, longitude float64, latitude float64, userLongitu
 	var c = 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
 	var distance = earthRadius * c
 
-	return distance < range
+	return distance < givenrange
 }

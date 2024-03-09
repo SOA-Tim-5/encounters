@@ -24,7 +24,7 @@ func initDB() *gorm.DB {
 	}
 
 	err = database.AutoMigrate(&model.Encounter{}, &model.HiddenLocationEncounter{}, &model.SocialEncounter{},
-		&model.KeyPointEncounter{}, &model.MiscEncounter{},&model.TouristProgress{})
+		&model.KeyPointEncounter{}, &model.MiscEncounter{},&model.TouristProgress{},&model.EncounterInstance{})
 	if err != nil {
 		log.Fatalf("Error migrating models: %v", err)
 	}
