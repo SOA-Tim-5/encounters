@@ -96,22 +96,25 @@ func (service *EncounterService) FindAll() ([]model.Encounter, error) {
 
 func (service *EncounterService) FindHiddenLocationEncounterById(id int64) (*model.HiddenLocationEncounterDto, error) {
 	hiddenLocationEncounter, err := service.EncounterRepo.FindHiddenLocationEncounterById(id)
+	encounter, err := service.EncounterRepo.FindEncounterById(hiddenLocationEncounter.EncounterId)
+
 	if err != nil {
 		return nil, fmt.Errorf(fmt.Sprintf("menu item with id %s not found", id))
 	}
+	fmt.Printf("%+v\n", hiddenLocationEncounter)
 	hiddenLocationEncounterDto := model.HiddenLocationEncounterDto{
 		PictureLongitude: hiddenLocationEncounter.PictureLongitude,
 		PictureLatitude:  hiddenLocationEncounter.PictureLatitude,
-		Id:               hiddenLocationEncounter.Encounter.Id,
-		Title:            hiddenLocationEncounter.Encounter.Title,
-		Description:      hiddenLocationEncounter.Encounter.Description,
-		Picture:          hiddenLocationEncounter.Encounter.Picture,
-		Longitude:        hiddenLocationEncounter.Encounter.Longitude,
-		Latitude:         hiddenLocationEncounter.Encounter.Latitude,
-		Radius:           hiddenLocationEncounter.Encounter.Radius,
-		XpReward:         hiddenLocationEncounter.Encounter.XpReward,
-		Status:           hiddenLocationEncounter.Encounter.Status,
-		Type:             hiddenLocationEncounter.Encounter.Type,
+		Id:               encounter.Id,
+		Title:            encounter.Title,
+		Description:      encounter.Description,
+		Picture:          encounter.Picture,
+		Longitude:        encounter.Longitude,
+		Latitude:         encounter.Latitude,
+		Radius:           encounter.Radius,
+		XpReward:         encounter.XpReward,
+		Status:           encounter.Status,
+		Type:             encounter.Type,
 	}
 	return &hiddenLocationEncounterDto, nil
 }
@@ -137,15 +140,23 @@ func (service *EncounterService) FindAllDoneByUser(id int64) ([]model.Encounter,
 	return encounters, nil
 }
 
-func (service *EncounterService) FindInstanceByUser(id int64) (*model.EncounterInstanceDto, error) {
-	instance, err := service.EncounterRepo.FindInstanceByUserId(id)
+func (service *EncounterService) FindInstanceByUser(id int64, encounterid int64) (*model.EncounterInstanceDto, error) {
+	instances, err := service.EncounterRepo.FindInstancesByUserId(id)
 	if err != nil {
-		return nil, fmt.Errorf(fmt.Sprintf("instance not found"))
+		return nil, fmt.Errorf(fmt.Sprintf("encounters not found"))
+	}
+	var foundedInstance model.EncounterInstance
+	for _, instance := range instances {
+
+		if instance.EncounterId == encounterid {
+			foundedInstance = instance
+			break
+		}
 	}
 	instanceDto := model.EncounterInstanceDto{
-		UserId:         instance.UserId,
-		Status:         instance.Status,
-		CompletionTime: instance.CompletionTime,
+		UserId:         foundedInstance.UserId,
+		Status:         foundedInstance.Status,
+		CompletionTime: foundedInstance.CompletionTime,
 	}
 	return &instanceDto, nil
 }
