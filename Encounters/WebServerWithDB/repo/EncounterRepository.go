@@ -55,6 +55,33 @@ func (repo *EncounterRepository) CreateKeyPointEncounter(KeyPointEncounter *mode
 	return nil
 }
 
+func (repo *EncounterRepository) CreateEncounterInstance(instance *model.EncounterInstance) error {
+	dbResult := repo.DatabaseConnection.Create(instance)
+	if dbResult.Error != nil {
+		return dbResult.Error
+	}
+	println("Rows affected: ", dbResult.RowsAffected)
+	return nil
+}
+
+func (repo *EncounterRepository) UpdateEncounter(encounter *model.Encounter) error {
+	dbResult := repo.DatabaseConnection.Save(encounter)
+	if dbResult.Error != nil {
+		return dbResult.Error
+	}
+	println("Rows affected: ", dbResult.RowsAffected)
+	return nil
+}
+
+func (repo *EncounterRepository) GetEncounter(encounterId int64) *model.Encounter {
+	var encounter *model.Encounter
+	dbResult := repo.DatabaseConnection.Where("Id = ?", encounterId).First(&encounter)
+	if dbResult.Error != nil {
+		return nil
+	}
+	println("Found encounter")
+	return encounter
+}
 
 func (repo *EncounterRepository) FindTouristProgressByTouristId(id int64) (model.TouristProgress, error) {
 	touristProgress := model.TouristProgress{}
@@ -96,7 +123,7 @@ func (repo *EncounterRepository) FindHiddenLocationEncounterById(id int64) (mode
 
 func (repo *EncounterRepository) FindInstancesByUserId(id int64) ([]model.EncounterInstance, error) {
 	var instances []model.EncounterInstance
-	dbResult := repo.DatabaseConnection.Find(&instances,"user_id=?",id)
+	dbResult := repo.DatabaseConnection.Find(&instances, "user_id=?", id)
 	if dbResult.Error != nil {
 		return nil, dbResult.Error
 	}
@@ -106,7 +133,7 @@ func (repo *EncounterRepository) FindInstancesByUserId(id int64) ([]model.Encoun
 
 func (repo *EncounterRepository) FindInstanceByUserId(id int64) (model.EncounterInstance, error) {
 	var instance model.EncounterInstance
-	dbResult := repo.DatabaseConnection.First(&instance,"user_id=?",id)
+	dbResult := repo.DatabaseConnection.First(&instance, "user_id=?", id)
 	if dbResult != nil {
 		return instance, dbResult.Error
 	}
@@ -116,10 +143,19 @@ func (repo *EncounterRepository) FindInstanceByUserId(id int64) (model.Encounter
 
 func (repo *EncounterRepository) FindEncounterById(id int64) (model.Encounter, error) {
 	var encounter model.Encounter
-	dbResult := repo.DatabaseConnection.First(&encounter,"id=?",id)
+	dbResult := repo.DatabaseConnection.First(&encounter, "id=?", id)
 	if dbResult != nil {
 		return encounter, dbResult.Error
 	}
 
 	return encounter, nil
+}
+
+func (repo *EncounterRepository) HasUserActivatedOrCompletedEncounter(encounterId int64, userId int64) bool {
+	var instance *model.EncounterInstance
+	dbResult := repo.DatabaseConnection.Where("encounter_id = ? and user_id = ?", encounterId, userId).First(&instance)
+	if dbResult.Error != nil {
+		return false
+	}
+	return true
 }

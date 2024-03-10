@@ -5,8 +5,9 @@ import (
 	"database-example/service"
 	"encoding/json"
 	"net/http"
-	"github.com/gorilla/mux"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type EncounterHandler struct {
@@ -22,10 +23,10 @@ func (handler *EncounterHandler) CreateMiscEncounter(writer http.ResponseWriter,
 		return
 	}
 	newMiscEncounter := model.MiscEncounter{
-		Encounter:     model.Encounter{Title: miscEncounterDto.Title, Description: miscEncounterDto.Description,
-		Picture: miscEncounterDto.Picture, Longitude: miscEncounterDto.Longitude, Latitude: miscEncounterDto.Latitude,
-		Radius: miscEncounterDto.Radius, XpReward: miscEncounterDto.XpReward, Status: miscEncounterDto.Status,
-		Type: miscEncounterDto.Type},
+		Encounter: model.Encounter{Title: miscEncounterDto.Title, Description: miscEncounterDto.Description,
+			Picture: miscEncounterDto.Picture, Longitude: miscEncounterDto.Longitude, Latitude: miscEncounterDto.Latitude,
+			Radius: miscEncounterDto.Radius, XpReward: miscEncounterDto.XpReward, Status: miscEncounterDto.Status,
+			Type: miscEncounterDto.Type},
 		ChallengeDone: miscEncounterDto.ChallengeDone,
 	}
 	err = handler.EncounterService.CreateMiscEncounter(&newMiscEncounter)
@@ -47,10 +48,10 @@ func (handler *EncounterHandler) CreateSocialEncounter(writer http.ResponseWrite
 		return
 	}
 	newSocialEncounter := model.SocialEncounter{
-		Encounter:     model.Encounter{Title: socialEncounterDto.Title, Description: socialEncounterDto.Description,
-		Picture: socialEncounterDto.Picture, Longitude: socialEncounterDto.Longitude, Latitude: socialEncounterDto.Latitude,
-		Radius: socialEncounterDto.Radius, XpReward: socialEncounterDto.XpReward, Status: socialEncounterDto.Status,
-		Type: socialEncounterDto.Type},
+		Encounter: model.Encounter{Title: socialEncounterDto.Title, Description: socialEncounterDto.Description,
+			Picture: socialEncounterDto.Picture, Longitude: socialEncounterDto.Longitude, Latitude: socialEncounterDto.Latitude,
+			Radius: socialEncounterDto.Radius, XpReward: socialEncounterDto.XpReward, Status: socialEncounterDto.Status,
+			Type: socialEncounterDto.Type},
 		PeopleNumber: socialEncounterDto.PeopleNumber,
 	}
 	err = handler.EncounterService.CreateSocialEncounter(&newSocialEncounter)
@@ -72,16 +73,41 @@ func (handler *EncounterHandler) CreateHiddenLocationEncounter(writer http.Respo
 		return
 	}
 	newHiddenLocationEncounter := model.HiddenLocationEncounter{
-		Encounter:     model.Encounter{Title: hiddenLocationEncounterDto.Title, Description: hiddenLocationEncounterDto.Description,
-		Picture: hiddenLocationEncounterDto.Picture, Longitude: hiddenLocationEncounterDto.Longitude, Latitude: hiddenLocationEncounterDto.Latitude,
-		Radius: hiddenLocationEncounterDto.Radius, XpReward: hiddenLocationEncounterDto.XpReward, Status: hiddenLocationEncounterDto.Status,
-		Type: hiddenLocationEncounterDto.Type},
-		PictureLongitude :hiddenLocationEncounterDto.PictureLongitude,
-		PictureLatitude :hiddenLocationEncounterDto.PictureLatitude,
+		Encounter: model.Encounter{Title: hiddenLocationEncounterDto.Title, Description: hiddenLocationEncounterDto.Description,
+			Picture: hiddenLocationEncounterDto.Picture, Longitude: hiddenLocationEncounterDto.Longitude, Latitude: hiddenLocationEncounterDto.Latitude,
+			Radius: hiddenLocationEncounterDto.Radius, XpReward: hiddenLocationEncounterDto.XpReward, Status: hiddenLocationEncounterDto.Status,
+			Type: hiddenLocationEncounterDto.Type},
+		PictureLongitude: hiddenLocationEncounterDto.PictureLongitude,
+		PictureLatitude:  hiddenLocationEncounterDto.PictureLatitude,
 	}
 	err = handler.EncounterService.CreateHiddenLocationEncounter(&newHiddenLocationEncounter)
 	if err != nil {
 		println("Error while creating a new hidden location encounter")
+		writer.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
+	writer.WriteHeader(http.StatusCreated)
+	writer.Header().Set("Content-Type", "application/json")
+}
+
+func (handler *EncounterHandler) ActivateEncounter(writer http.ResponseWriter, req *http.Request) {
+	var touristPosition model.TouristPosition
+	err := json.NewDecoder(req.Body).Decode(&touristPosition)
+	if err != nil {
+		println("Error while parsing json")
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	var id int64
+	vars := mux.Vars(req)
+	ids, ok := vars["id"]
+	if !ok {
+		println("id is missing in parameters")
+	}
+	id, err = strconv.ParseInt(ids, 10, 64)
+	err = handler.EncounterService.ActivateEncounter(id, &touristPosition)
+	if err != nil {
+		println("Error while activating")
 		writer.WriteHeader(http.StatusExpectationFailed)
 		return
 	}
@@ -96,10 +122,10 @@ func (handler *EncounterHandler) FindTouristProgressByTouristId(writer http.Resp
 	writer.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		writer.WriteHeader(http.StatusNotFound)
-	 	return
+		return
 	}
-	touristProgressDto:=model.TouristProgressDto{
-		Xp: touristProgress.Xp,
+	touristProgressDto := model.TouristProgressDto{
+		Xp:    touristProgress.Xp,
 		Level: touristProgress.Level,
 	}
 	writer.WriteHeader(http.StatusOK)
@@ -113,7 +139,7 @@ func (handler *EncounterHandler) FindAllInRangeOf(writer http.ResponseWriter, re
 	userLongitude, err := strconv.ParseFloat(strLong, 64)
 	strLat := mux.Vars(req)["lat"]
 	userLatitude, err := strconv.ParseFloat(strLat, 64)
-	encounters, err := handler.EncounterService.FindAllInRangeOf(givenRange,userLongitude,userLatitude)
+	encounters, err := handler.EncounterService.FindAllInRangeOf(givenRange, userLongitude, userLatitude)
 	writer.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		writer.WriteHeader(http.StatusNotFound)
@@ -142,7 +168,6 @@ func (handler *EncounterHandler) FindAll(writer http.ResponseWriter, req *http.R
 	}
 }
 
-
 func (handler *EncounterHandler) FindHiddenLocationEncounterById(writer http.ResponseWriter, req *http.Request) {
 	strid := mux.Vars(req)["id"]
 	id, err := strconv.ParseInt(strid, 10, 64)
@@ -150,7 +175,7 @@ func (handler *EncounterHandler) FindHiddenLocationEncounterById(writer http.Res
 	writer.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		writer.WriteHeader(http.StatusNotFound)
-	 	return
+		return
 	}
 
 	writer.WriteHeader(http.StatusOK)
@@ -164,11 +189,11 @@ func (handler *EncounterHandler) IsUserInCompletitionRange(writer http.ResponseW
 	userLongitude, err := strconv.ParseFloat(strLong, 64)
 	strLat := mux.Vars(req)["lat"]
 	userLatitude, err := strconv.ParseFloat(strLat, 64)
-	isUserInCompletitionRange := handler.EncounterService.IsUserInCompletitionRange(id,userLongitude,userLatitude)
+	isUserInCompletitionRange := handler.EncounterService.IsUserInCompletitionRange(id, userLongitude, userLatitude)
 	writer.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		writer.WriteHeader(http.StatusNotFound)
-	 	return
+		return
 	}
 
 	writer.WriteHeader(http.StatusOK)
@@ -178,7 +203,7 @@ func (handler *EncounterHandler) IsUserInCompletitionRange(writer http.ResponseW
 func (handler *EncounterHandler) FindAllDoneByUser(writer http.ResponseWriter, req *http.Request) {
 	strid := mux.Vars(req)["id"]
 	id, err := strconv.ParseInt(strid, 10, 64)
-	encounters,_ := handler.EncounterService.FindAllDoneByUser(id)
+	encounters, _ := handler.EncounterService.FindAllDoneByUser(id)
 	writer.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		writer.WriteHeader(http.StatusNotFound)
@@ -192,17 +217,16 @@ func (handler *EncounterHandler) FindAllDoneByUser(writer http.ResponseWriter, r
 	}
 }
 
-
 func (handler *EncounterHandler) FindEncounterInstance(writer http.ResponseWriter, req *http.Request) {
 	strid := mux.Vars(req)["id"]
 	id, err := strconv.ParseInt(strid, 10, 64)
 	strencounterid := mux.Vars(req)["encounterId"]
 	encounterid, err := strconv.ParseInt(strencounterid, 10, 64)
-	instance, err := handler.EncounterService.FindInstanceByUser(id,encounterid)
+	instance, err := handler.EncounterService.FindInstanceByUser(id, encounterid)
 	writer.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		writer.WriteHeader(http.StatusNotFound)
-	 	return
+		return
 	}
 
 	writer.WriteHeader(http.StatusOK)

@@ -24,7 +24,7 @@ func initDB() *gorm.DB {
 	}
 
 	err = database.AutoMigrate(&model.Encounter{}, &model.HiddenLocationEncounter{}, &model.SocialEncounter{},
-		&model.KeyPointEncounter{}, &model.MiscEncounter{},&model.TouristProgress{},&model.EncounterInstance{})
+		&model.KeyPointEncounter{}, &model.MiscEncounter{}, &model.TouristProgress{}, &model.EncounterInstance{})
 	if err != nil {
 		log.Fatalf("Error migrating models: %v", err)
 	}
@@ -38,6 +38,7 @@ func startEncounterServer(handler *handler.EncounterHandler) {
 	router.HandleFunc("/encounters/misc", handler.CreateMiscEncounter).Methods("POST")
 	router.HandleFunc("/encounters/social", handler.CreateSocialEncounter).Methods("POST")
 	router.HandleFunc("/encounters/hidden", handler.CreateHiddenLocationEncounter).Methods("POST")
+	router.HandleFunc("/encounters/activate/{id}", handler.ActivateEncounter).Methods("POST")
 	router.HandleFunc("/encounters/touristProgress/{id}", handler.FindTouristProgressByTouristId).Methods("GET")
 	router.HandleFunc("/encounters/{range}/{long}/{lat}", handler.FindAllInRangeOf).Methods("GET")
 	router.HandleFunc("/encounters", handler.FindAll).Methods("GET")
@@ -45,7 +46,6 @@ func startEncounterServer(handler *handler.EncounterHandler) {
 	router.HandleFunc("/encounters/isInRange/{id}/{long}/{lat}", handler.IsUserInCompletitionRange).Methods("GET")
 	router.HandleFunc("/encounters/doneByUser/{id}", handler.FindAllDoneByUser).Methods("GET")
 	router.HandleFunc("/encounters/instance/{id}/{encounterId}/encounter", handler.FindEncounterInstance).Methods("GET")
-
 
 	println("Server starting")
 	log.Fatal(http.ListenAndServe(":81", router))

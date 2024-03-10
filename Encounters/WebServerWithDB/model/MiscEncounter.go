@@ -1,12 +1,10 @@
 package model
 
-import (
-	//"github.com/google/uuid"
-)
+//"github.com/google/uuid"
 
 type MiscEncounter struct {
 	EncounterId   int64 `gorm:"primaryKey"`
-	Encounter Encounter
+	Encounter     Encounter
 	ChallengeDone bool
 }
 
