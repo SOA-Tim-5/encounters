@@ -76,10 +76,10 @@ func IsInRangeOf(givenrange float64, longitude float64, latitude float64, userLo
 }
 
 func (encounter *Encounter) IsForActivating(userId int64, userLongitude float64, userLatitude float64) bool {
-	return encounter.Status == Active && IsInRange(encounter.Radius, encounter.Longitude, encounter.Latitude, userLongitude, userLatitude)
+	return encounter.Status == Active && encounter.IsInRange(userLongitude, userLatitude)
 }
 
-func IsInRange(radius float64, longitude float64, latitude float64, userLongitude float64, userLatitude float64) bool {
-	var distance = math.Acos(math.Sin(3.14/180*(latitude))*math.Sin(3.14/180*(userLatitude))+math.Cos(3.14/180*(latitude))*math.Cos(3.14/180*userLatitude)*math.Cos(3.14/180*longitude-3.14/180*userLongitude)) * 6371000
-	return distance < radius
+func (encounter *Encounter) IsInRange(userLongitude float64, userLatitude float64) bool {
+	var distance = math.Acos(math.Sin(3.14/180*(encounter.Latitude))*math.Sin(3.14/180*(userLatitude))+math.Cos(3.14/180*(encounter.Latitude))*math.Cos(3.14/180*userLatitude)*math.Cos(3.14/180*encounter.Longitude-3.14/180*userLongitude)) * 6371000
+	return distance < encounter.Radius
 }

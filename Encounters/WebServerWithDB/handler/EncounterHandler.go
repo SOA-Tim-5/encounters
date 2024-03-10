@@ -272,3 +272,25 @@ func (handler *EncounterHandler) CompleteMiscEncounter(writer http.ResponseWrite
 	writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(touristProgress)
 }
+
+func (handler *EncounterHandler) CompleteSocialEncounter(writer http.ResponseWriter, req *http.Request) {
+	struserid := mux.Vars(req)["encounterId"]
+	encounterId, err := strconv.ParseInt(struserid, 10, 64)
+
+	var touristPosition model.TouristPosition
+	err2 := json.NewDecoder(req.Body).Decode(&touristPosition)
+	if err2 != nil {
+		println("Error while parsing json")
+		writer.WriteHeader(http.StatusBadRequest)
+	}
+
+	touristProgress, err := handler.EncounterService.CompleteSocialEncounter(encounterId, &touristPosition)
+	writer.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		writer.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	json.NewEncoder(writer).Encode(touristProgress)
+}

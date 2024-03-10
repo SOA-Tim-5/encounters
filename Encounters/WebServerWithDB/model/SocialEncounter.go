@@ -19,3 +19,7 @@ type SocialEncounterDto struct {
 	Status       EncounterStatus
 	Type         EncounterType
 }
+
+func (social *SocialEncounter) IsEnoughPeople(numberOfInstances int) bool {
+	return numberOfInstances >= social.PeopleNumber
+}
