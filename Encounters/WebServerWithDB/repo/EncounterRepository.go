@@ -155,6 +155,7 @@ func (repo *EncounterRepository) HasUserActivatedOrCompletedEncounter(encounterI
 	var instance *model.EncounterInstance
 	dbResult := repo.DatabaseConnection.Where("encounter_id = ? and user_id = ?", encounterId, userId).First(&instance)
 	if dbResult.Error != nil {
+		println("Can't be activated")
 		return false
 	}
 	return true

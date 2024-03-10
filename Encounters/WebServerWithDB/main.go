@@ -40,6 +40,7 @@ func startEncounterServer(handler *handler.EncounterHandler) {
 	router.HandleFunc("/encounters/hidden", handler.CreateHiddenLocationEncounter).Methods("POST")
 	router.HandleFunc("/encounters/activate/{id}", handler.ActivateEncounter).Methods("POST")
 	router.HandleFunc("/encounters/touristProgress/{id}", handler.FindTouristProgressByTouristId).Methods("GET")
+	router.HandleFunc("/encounters/complete/{id}", handler.CompleteHiddenLocationEncounter).Methods("POST")
 	router.HandleFunc("/encounters/{range}/{long}/{lat}", handler.FindAllInRangeOf).Methods("GET")
 	router.HandleFunc("/encounters", handler.FindAll).Methods("GET")
 	router.HandleFunc("/encounters/hidden/{id}", handler.FindHiddenLocationEncounterById).Methods("GET")

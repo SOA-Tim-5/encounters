@@ -4,8 +4,9 @@ import (
 	"math"
 	"time"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
+
+	"github.com/google/uuid"
 )
 
 type EncounterStatus int
@@ -44,6 +45,26 @@ func (encounter *Encounter) BeforeCreate(scope *gorm.DB) error {
 	encounter.Id = currentTimestamp + int64(uniqueID)
 	return nil
 }
+
+// func Complete(enc *Encounter, userId int64, longitude float64, latitude float64) *Encounter {
+// 	var instance *EncounterInstance = nil
+// 	if len(enc.Instances) > 0 {
+// 		for i := 0; i < len(enc.Instances); i++ {
+// 			if enc.Instances[i].Status == Activated && enc.Instances[i].UserId == userId {
+// 				instance = &enc.Instances[i]
+// 				break
+// 			}
+// 		}
+// 		if instance != nil && IsUserInRange(enc, longitude, latitude) {
+// 			CompleteInstance(instance, userId)
+// 			return enc
+// 		}
+// 		println("User is not in 5m range")
+// 	} else {
+// 		println("Encounter not active")
+// 	}
+// 	return nil
+// }
 
 func IsInRangeOf(givenrange float64, longitude float64, latitude float64, userLongitude float64, userLatitude float64) bool {
 	if longitude == userLongitude && latitude == userLatitude {

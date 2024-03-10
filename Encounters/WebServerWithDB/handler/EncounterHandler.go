@@ -132,6 +132,30 @@ func (handler *EncounterHandler) FindTouristProgressByTouristId(writer http.Resp
 	json.NewEncoder(writer).Encode(touristProgressDto)
 }
 
+func (handler *EncounterHandler) CompleteHiddenLocationEncounter(writer http.ResponseWriter, req *http.Request) {
+	var touristPosition model.TouristPosition
+	err := json.NewDecoder(req.Body).Decode(&touristPosition)
+	if err != nil {
+		println("Error while parsing json")
+		writer.WriteHeader(http.StatusBadRequest)
+	}
+
+	vars := mux.Vars(req)
+	id, ok := vars["id"]
+	if !ok {
+		println("id is missing in parameters")
+	}
+	encounterId, err := strconv.ParseFloat(id, 64)
+	err = handler.EncounterService.CompleteHiddenLocationEncounter(int64(encounterId), &touristPosition)
+	if err != nil {
+		println("Error while completing hidden location encounter")
+		writer.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
+	writer.WriteHeader(http.StatusCreated)
+	writer.Header().Set("Content-Type", "application/json")
+}
+
 func (handler *EncounterHandler) FindAllInRangeOf(writer http.ResponseWriter, req *http.Request) {
 	strrange := mux.Vars(req)["range"]
 	givenRange, err := strconv.ParseFloat(strrange, 64)

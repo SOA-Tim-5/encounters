@@ -69,6 +69,20 @@ func (service *EncounterService) FindTouristProgressByTouristId(id int64) (*mode
 	return &touristProgress, nil
 }
 
+func (service *EncounterService) CompleteHiddenLocationEncounter(encounterId int64, position *model.TouristPosition) error {
+	var encounter model.Encounter = *service.EncounterRepo.GetEncounter(encounterId)
+	// err := model.Complete(&encounter, position.TouristId, position.Longitude, position.Latitude)
+	// if err == nil {
+	// 	return nil
+	// }
+
+	err2 := service.EncounterRepo.UpdateEncounter(&encounter)
+	if err2 != nil {
+		return err2
+	}
+	return nil
+}
+
 func (service *EncounterService) FindAllInRangeOf(givenrange float64, userLongitude float64, userLatitude float64) ([]model.Encounter, error) {
 	allencounters, err := service.EncounterRepo.FindAll()
 	if err != nil {
