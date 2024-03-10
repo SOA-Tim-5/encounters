@@ -98,7 +98,17 @@ func (repo *EncounterRepository) GetHiddenLocationEncounter(encounterId int64) *
 	if dbResult.Error != nil {
 		return nil
 	}
-	println("Found encounter")
+	println("Found hidden location encounter")
+	return encounter
+}
+
+func (repo *EncounterRepository) GetSocialEncounter(encounterId int64) *model.SocialEncounter {
+	var encounter *model.SocialEncounter
+	dbResult := repo.DatabaseConnection.Preload("Encounter").Where("encounter_id = ?", encounterId).First(&encounter)
+	if dbResult.Error != nil {
+		return nil
+	}
+	println("Found social encounter")
 	return encounter
 }
 
@@ -189,15 +199,6 @@ func (repo *EncounterRepository) GetEncounterInstance(encounterId int64, userId 
 	return instance
 }
 
-func (repo *EncounterRepository) UpdateTouristProgress(progress *model.TouristProgress) error {
-	dbResult := repo.DatabaseConnection.Save(progress)
-	if dbResult.Error != nil {
-		return dbResult.Error
-	}
-	println("Rows affected: ", dbResult.RowsAffected)
-	return nil
-}
-
 func (repo *EncounterRepository) GetTouristProgress(userId int64) *model.TouristProgress {
 	var progress *model.TouristProgress
 	dbResult := repo.DatabaseConnection.Where("user_id = ?", userId).First(&progress)
@@ -205,4 +206,31 @@ func (repo *EncounterRepository) GetTouristProgress(userId int64) *model.Tourist
 		return nil
 	}
 	return progress
+}
+
+func (repo *EncounterRepository) UpdateTouristProgress(touristProgress *model.TouristProgress) error {
+	dbResult := repo.DatabaseConnection.Save(touristProgress)
+	if dbResult.Error != nil {
+		return dbResult.Error
+	}
+	println("Rows affected: ", dbResult.RowsAffected)
+	return nil
+}
+
+func (repo *EncounterRepository) GetNumberOfActiveInstances(encounterId int64) int64 {
+	var instances int64
+	dbResult := repo.DatabaseConnection.Where("encounter_id = ? and status = 0", encounterId).Table("encounter_instances").Distinct("user_id").Count(&instances)
+	if dbResult.Error != nil {
+		return 0
+	}
+	return instances
+}
+
+func (repo *EncounterRepository) GetActiveInstances(encounterId int64) []*model.EncounterInstance {
+	var instances []*model.EncounterInstance
+	dbResult := repo.DatabaseConnection.Where("encounter_id = ? and status = 0", encounterId).Find(&instances)
+	if dbResult.Error != nil {
+		return nil
+	}
+	return instances
 }

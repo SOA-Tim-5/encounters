@@ -47,6 +47,8 @@ func startEncounterServer(handler *handler.EncounterHandler) {
 	router.HandleFunc("/encounters/isInRange/{id}/{long}/{lat}", handler.IsUserInCompletitionRange).Methods("GET")
 	router.HandleFunc("/encounters/doneByUser/{id}", handler.FindAllDoneByUser).Methods("GET")
 	router.HandleFunc("/encounters/instance/{id}/{encounterId}/encounter", handler.FindEncounterInstance).Methods("GET")
+	router.HandleFunc("/encounters/complete/{userid}/{encounterId}/misc", handler.CompleteMiscEncounter).Methods("GET")
+	router.HandleFunc("/encounters/complete/{encounterId}/social", handler.CompleteSocialEncounter).Methods("POST")
 
 	println("Server starting")
 	log.Fatal(http.ListenAndServe(":81", router))
