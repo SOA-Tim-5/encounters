@@ -70,15 +70,17 @@ func (service *EncounterService) FindTouristProgressByTouristId(id int64) (*mode
 }
 
 func (service *EncounterService) CompleteHiddenLocationEncounter(encounterId int64, position *model.TouristPosition) error {
-	var encounter model.Encounter = *service.EncounterRepo.GetEncounter(encounterId)
-	// err := model.Complete(&encounter, position.TouristId, position.Longitude, position.Latitude)
-	// if err == nil {
-	// 	return nil
-	// }
-
-	err2 := service.EncounterRepo.UpdateEncounter(&encounter)
-	if err2 != nil {
-		return err2
+	var instance *model.EncounterInstance = service.EncounterRepo.GetEncounterInstance(encounterId, position.TouristId)
+	var encounter *model.HiddenLocationEncounter = service.EncounterRepo.GetHiddenLocationEncounter(encounterId)
+	if instance.Status == model.Activated && encounter.IsUserInCompletitionRange(encounter.PictureLongitude, encounter.PictureLatitude, position.Longitude, position.Latitude) {
+		instance.Status = model.Completed
+		instance.CompletionTime = time.Now().UTC()
+		err2 := service.EncounterRepo.UpdateEncounterInstance(instance)
+		if err2 != nil {
+			return err2
+		}
+	} else {
+		println("Can't be completed")
 	}
 	return nil
 }
@@ -135,7 +137,7 @@ func (service *EncounterService) FindHiddenLocationEncounterById(id int64) (*mod
 
 func (service *EncounterService) IsUserInCompletitionRange(id int64, userLongitude float64, userLatitude float64) bool {
 	hiddenLocationEncounter, _ := service.EncounterRepo.FindHiddenLocationEncounterById(id)
-	var isUserInCompletitionRange = model.IsUserInCompletitionRange(hiddenLocationEncounter.PictureLongitude,
+	var isUserInCompletitionRange = hiddenLocationEncounter.IsUserInCompletitionRange(hiddenLocationEncounter.PictureLongitude,
 		hiddenLocationEncounter.PictureLatitude,
 		userLongitude, userLatitude)
 	return isUserInCompletitionRange

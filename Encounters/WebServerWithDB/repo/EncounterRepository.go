@@ -73,9 +73,28 @@ func (repo *EncounterRepository) UpdateEncounter(encounter *model.Encounter) err
 	return nil
 }
 
+func (repo *EncounterRepository) UpdateEncounterInstance(instance *model.EncounterInstance) error {
+	dbResult := repo.DatabaseConnection.Save(instance)
+	if dbResult.Error != nil {
+		return dbResult.Error
+	}
+	println("Rows affected: ", dbResult.RowsAffected)
+	return nil
+}
+
 func (repo *EncounterRepository) GetEncounter(encounterId int64) *model.Encounter {
 	var encounter *model.Encounter
 	dbResult := repo.DatabaseConnection.Where("Id = ?", encounterId).First(&encounter)
+	if dbResult.Error != nil {
+		return nil
+	}
+	println("Found encounter")
+	return encounter
+}
+
+func (repo *EncounterRepository) GetHiddenLocationEncounter(encounterId int64) *model.HiddenLocationEncounter {
+	var encounter *model.HiddenLocationEncounter
+	dbResult := repo.DatabaseConnection.Where("encounter_id = ?", encounterId).First(&encounter)
 	if dbResult.Error != nil {
 		return nil
 	}
@@ -159,4 +178,13 @@ func (repo *EncounterRepository) HasUserActivatedOrCompletedEncounter(encounterI
 		return false
 	}
 	return true
+}
+
+func (repo *EncounterRepository) GetEncounterInstance(encounterId int64, userId int64) *model.EncounterInstance {
+	var instance *model.EncounterInstance
+	dbResult := repo.DatabaseConnection.Where("encounter_id = ? and user_id = ?", encounterId, userId).First(&instance)
+	if dbResult.Error != nil {
+		return nil
+	}
+	return instance
 }
