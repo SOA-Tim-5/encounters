@@ -26,3 +26,9 @@ type TouristProgressDto struct {
 	Xp      int
 	Level   int
 }
+
+func AddXp (touristProgress *TouristProgress, xp int) (*TouristProgress) {
+	touristProgress.Xp=touristProgress.Xp+xp
+	touristProgress.Level=touristProgress.Xp/100+1
+	return touristProgress
+}

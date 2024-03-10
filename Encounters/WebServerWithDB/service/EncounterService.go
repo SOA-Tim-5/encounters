@@ -160,3 +160,39 @@ func (service *EncounterService) FindInstanceByUser(id int64, encounterid int64)
 	}
 	return &instanceDto, nil
 }
+
+
+func (service *EncounterService) CompleteMiscEncounter(userid int64, encounterid int64) (*model.TouristProgressDto, error) {
+	instances, err := service.EncounterRepo.FindInstancesByUserId(userid)
+	if err != nil {
+		return nil, fmt.Errorf(fmt.Sprintf("instances not found"))
+	}
+	var foundedInstance model.EncounterInstance
+	for _, instance := range instances {
+		if instance.EncounterId == encounterid {
+			foundedInstance = instance
+			break
+		}
+	}
+	service.EncounterRepo.UpdateEncounterInstance(model.Complete(&foundedInstance))
+
+	touristProgress, err := service.EncounterRepo.FindTouristProgressByTouristId(userid)
+	if err != nil {
+		return nil, fmt.Errorf(fmt.Sprintf("tourist progress with userid %s not found", userid))
+	}
+
+	encounter, err := service.EncounterRepo.FindEncounterById(encounterid)
+	if err != nil {
+		return nil, fmt.Errorf(fmt.Sprintf("encounter with id %s not found", encounterid))
+	}
+
+	var AddedXpTouristProgress=model.AddXp(&touristProgress,encounter.XpReward)
+
+	service.EncounterRepo.UpdateTouristProgress(AddedXpTouristProgress)
+
+	touristProgressDto := model.TouristProgressDto{
+		Xp:    AddedXpTouristProgress.Xp,
+		Level: AddedXpTouristProgress.Level,
+	}
+	return &touristProgressDto, nil
+}

@@ -35,3 +35,8 @@ func (encounterInstance *EncounterInstance) BeforeCreate(scope *gorm.DB) error {
 	encounterInstance.Id = currentTimestamp + int64(uniqueID)
 	return nil
 }
+func  Complete (encounterInstance *EncounterInstance) (*EncounterInstance){
+	encounterInstance.Status= 1
+	encounterInstance.CompletionTime=time.Now()
+	return encounterInstance
+}

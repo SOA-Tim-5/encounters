@@ -232,3 +232,19 @@ func (handler *EncounterHandler) FindEncounterInstance(writer http.ResponseWrite
 	writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(instance)
 }
+
+func (handler *EncounterHandler) CompleteMiscEncounter(writer http.ResponseWriter, req *http.Request) {
+	struserid := mux.Vars(req)["userid"]
+	userid, err := strconv.ParseInt(struserid, 10, 64)
+	strencounterid := mux.Vars(req)["encounterId"]
+	encounterid, err := strconv.ParseInt(strencounterid, 10, 64)
+	touristProgress, err := handler.EncounterService.CompleteMiscEncounter(userid, encounterid)
+	writer.Header().Set("Content-Type", "application/json")
+	if err != nil {
+		writer.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	json.NewEncoder(writer).Encode(touristProgress)
+}
