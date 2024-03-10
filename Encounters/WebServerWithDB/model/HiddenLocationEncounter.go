@@ -40,7 +40,7 @@ func IsUserInRange(encounter *Encounter, userLongitude float64, userLatitude flo
 	return distance < 10
 }
 
-func IsUserInCompletitionRange(longitude float64, latitude float64, userLongitude float64, userLatitude float64) bool {
+func (encounter *HiddenLocationEncounter) IsUserInCompletitionRange(longitude float64, latitude float64, userLongitude float64, userLatitude float64) bool {
 	if longitude == userLongitude && latitude == userLatitude {
 		return true
 	}
