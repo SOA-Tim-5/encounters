@@ -2,7 +2,6 @@ package model
 
 import (
 	"math"
-	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -37,7 +36,6 @@ type Encounter struct {
 	XpReward    int
 	Status      EncounterStatus
 	Type        EncounterType
-	Instances   []EncounterInstance `gorm:"type:jsonb;"`
 }
 
 func (encounter *Encounter) BeforeCreate(scope *gorm.DB) error {
@@ -47,36 +45,20 @@ func (encounter *Encounter) BeforeCreate(scope *gorm.DB) error {
 	return nil
 }
 
-func Activate(encounter *Encounter, userId int64, userLongitude float64, userLatitude float64) *Encounter {
-	if encounter.Status != Active {
-		return nil
+func IsInRangeOf(givenrange float64, longitude float64, latitude float64, userLongitude float64, userLatitude float64) bool {
+	if longitude == userLongitude && latitude == userLatitude {
+		return true
 	}
-	if HasUserActivatedEncounter(encounter, userId) {
-		return nil
-	}
-	if IsInRange(encounter.Radius, encounter.Longitude, encounter.Latitude, userLongitude, userLatitude) {
-		return nil
-	}
+	var distance = math.Acos(math.Sin(3.14/180*(latitude))*math.Sin(3.14/180*(userLatitude))+math.Cos(3.14/180*(latitude))*math.Cos(3.14/180*userLatitude)*math.Cos(3.14/180*longitude-3.14/180*userLongitude)) * 6371000
 
-	encounter.Status = Active
-	instance := EncounterInstance{
-		UserId: int(userId), Status: Activated, CompletionTime: time.Now(),
-	}
-	encounter.Instances = append(encounter.Instances, instance)
-	return encounter
+	return distance < givenrange
 }
 
-func HasUserActivatedEncounter(encounter *Encounter, userId int64) bool {
-	return slices.IndexFunc(encounter.Instances, func(c EncounterInstance) bool { return c.Status == Activated }) == 1
+func (encounter *Encounter) IsForActivating(userId int64, userLongitude float64, userLatitude float64) bool {
+	return encounter.Status == Active && IsInRange(encounter.Radius, encounter.Longitude, encounter.Latitude, userLongitude, userLatitude)
 }
 
 func IsInRange(radius float64, longitude float64, latitude float64, userLongitude float64, userLatitude float64) bool {
-	var earthRadius float64 = 6371000
-	var latitudeDistance = userLatitude - latitude
-	var longitudeDistance = userLongitude - longitude
-	var a = math.Sin(latitudeDistance/2)*math.Sin(latitudeDistance/2) + math.Cos(latitude)*math.Cos(userLatitude) + math.Sin(longitudeDistance/2)*math.Sin(longitudeDistance/2)
-	var c = 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
-	var distance = earthRadius * c
-
+	var distance = math.Acos(math.Sin(3.14/180*(latitude))*math.Sin(3.14/180*(userLatitude))+math.Cos(3.14/180*(latitude))*math.Cos(3.14/180*userLatitude)*math.Cos(3.14/180*longitude-3.14/180*userLongitude)) * 6371000
 	return distance < radius
 }

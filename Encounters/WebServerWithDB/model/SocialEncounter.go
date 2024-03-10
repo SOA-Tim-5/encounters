@@ -1,5 +1,6 @@
 package model
 
+//"github.com/google/uuid"
 type SocialEncounter struct {
 	EncounterId  int64 `gorm:"primaryKey"`
 	Encounter    Encounter
