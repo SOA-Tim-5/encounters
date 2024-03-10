@@ -191,15 +191,6 @@ func (repo *EncounterRepository) GetEncounterInstance(encounterId int64, userId 
 }
 
 
-func (repo *EncounterRepository) UpdateEncounterInstance(encounterInstance *model.EncounterInstance) error {
-	dbResult := repo.DatabaseConnection.Save(encounterInstance)
-	if dbResult.Error != nil {
-		return dbResult.Error
-	}
-	println("Rows affected: ", dbResult.RowsAffected)
-	return nil
-}
-
 func (repo *EncounterRepository) UpdateTouristProgress(touristProgress *model.TouristProgress) error {
 	dbResult := repo.DatabaseConnection.Save(touristProgress)
 	if dbResult.Error != nil {

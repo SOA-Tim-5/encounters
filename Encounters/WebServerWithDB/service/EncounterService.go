@@ -48,6 +48,7 @@ func (service *EncounterService) CreateKeyPointEncounter(keyPointEncounter *mode
 
 func (service *EncounterService) ActivateEncounter(encounterId int64, position *model.TouristPosition) error {
 	var encounter *model.Encounter = service.EncounterRepo.GetEncounter(encounterId)
+	fmt.Println("ff %d",position.TouristId)
 	if encounter.IsForActivating(position.TouristId, position.Longitude, position.Latitude) && !service.EncounterRepo.HasUserActivatedOrCompletedEncounter(encounterId, position.TouristId) {
 		var instance model.EncounterInstance = model.EncounterInstance{
 			EncounterId: encounterId, UserId: position.TouristId, Status: model.Activated, CompletionTime: time.Now().UTC(),
@@ -157,18 +158,8 @@ func (service *EncounterService) FindAllDoneByUser(id int64) ([]model.Encounter,
 }
 
 func (service *EncounterService) FindInstanceByUser(id int64, encounterid int64) (*model.EncounterInstanceDto, error) {
-	instances, err := service.EncounterRepo.FindInstancesByUserId(id)
-	if err != nil {
-		return nil, fmt.Errorf(fmt.Sprintf("encounters not found"))
-	}
-	var foundedInstance model.EncounterInstance
-	for _, instance := range instances {
+	foundedInstance := service.EncounterRepo.GetEncounterInstance(encounterid,id)
 
-		if instance.EncounterId == encounterid {
-			foundedInstance = instance
-			break
-		}
-	}
 	instanceDto := model.EncounterInstanceDto{
 		UserId:         foundedInstance.UserId,
 		Status:         foundedInstance.Status,
@@ -179,18 +170,9 @@ func (service *EncounterService) FindInstanceByUser(id int64, encounterid int64)
 
 
 func (service *EncounterService) CompleteMiscEncounter(userid int64, encounterid int64) (*model.TouristProgressDto, error) {
-	instances, err := service.EncounterRepo.FindInstancesByUserId(userid)
-	if err != nil {
-		return nil, fmt.Errorf(fmt.Sprintf("instances not found"))
-	}
-	var foundedInstance model.EncounterInstance
-	for _, instance := range instances {
-		if instance.EncounterId == encounterid {
-			foundedInstance = instance
-			break
-		}
-	}
-	service.EncounterRepo.UpdateEncounterInstance(model.Complete(&foundedInstance))
+	foundedInstance := service.EncounterRepo.GetEncounterInstance(encounterid,userid)
+
+	service.EncounterRepo.UpdateEncounterInstance(model.Complete(foundedInstance))
 
 	touristProgress, err := service.EncounterRepo.FindTouristProgressByTouristId(userid)
 	if err != nil {
