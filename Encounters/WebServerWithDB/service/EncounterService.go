@@ -79,6 +79,19 @@ func (service *EncounterService) CompleteHiddenLocationEncounter(encounterId int
 		if err2 != nil {
 			return err2
 		}
+
+		var progress *model.TouristProgress = service.EncounterRepo.GetTouristProgress(position.TouristId)
+		if progress == nil {
+			progress = &model.TouristProgress{UserId: position.TouristId, Xp: encounter.Encounter.XpReward, Level: 1}
+		} else {
+			progress.Xp += encounter.Encounter.XpReward
+			progress.Level = progress.Xp / 100
+		}
+		err3 := service.EncounterRepo.UpdateTouristProgress(progress)
+		if err3 != nil {
+			return err3
+		}
+
 	} else {
 		println("Can't be completed")
 	}

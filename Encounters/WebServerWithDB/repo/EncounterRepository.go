@@ -94,7 +94,7 @@ func (repo *EncounterRepository) GetEncounter(encounterId int64) *model.Encounte
 
 func (repo *EncounterRepository) GetHiddenLocationEncounter(encounterId int64) *model.HiddenLocationEncounter {
 	var encounter *model.HiddenLocationEncounter
-	dbResult := repo.DatabaseConnection.Where("encounter_id = ?", encounterId).First(&encounter)
+	dbResult := repo.DatabaseConnection.Preload("Encounter").Where("encounter_id = ?", encounterId).First(&encounter)
 	if dbResult.Error != nil {
 		return nil
 	}
@@ -187,4 +187,22 @@ func (repo *EncounterRepository) GetEncounterInstance(encounterId int64, userId 
 		return nil
 	}
 	return instance
+}
+
+func (repo *EncounterRepository) UpdateTouristProgress(progress *model.TouristProgress) error {
+	dbResult := repo.DatabaseConnection.Save(progress)
+	if dbResult.Error != nil {
+		return dbResult.Error
+	}
+	println("Rows affected: ", dbResult.RowsAffected)
+	return nil
+}
+
+func (repo *EncounterRepository) GetTouristProgress(userId int64) *model.TouristProgress {
+	var progress *model.TouristProgress
+	dbResult := repo.DatabaseConnection.Where("user_id = ?", userId).First(&progress)
+	if dbResult.Error != nil {
+		return nil
+	}
+	return progress
 }
