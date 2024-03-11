@@ -171,8 +171,18 @@ func (service *EncounterService) FindAllDoneByUser(id int64) ([]model.Encounter,
 }
 
 func (service *EncounterService) FindInstanceByUser(id int64, encounterid int64) (*model.EncounterInstanceDto, error) {
-	foundedInstance := service.EncounterRepo.GetEncounterInstance(encounterid,id)
+	instances, err := service.EncounterRepo.FindInstancesByUserId(id)
+	if err != nil {
+		return nil, fmt.Errorf(fmt.Sprintf("encounters not found"))
+	}
+	var foundedInstance model.EncounterInstance
+	for _, instance := range instances {
 
+		if instance.EncounterId == encounterid {
+			foundedInstance = instance
+			break
+		}
+	}
 	instanceDto := model.EncounterInstanceDto{
 		UserId:         foundedInstance.UserId,
 		Status:         foundedInstance.Status,
