@@ -105,14 +105,20 @@ func (handler *EncounterHandler) ActivateEncounter(writer http.ResponseWriter, r
 		println("id is missing in parameters")
 	}
 	id, err = strconv.ParseInt(ids, 10, 64)
-	err = handler.EncounterService.ActivateEncounter(id, &touristPosition)
-	if err != nil {
+	encounter := handler.EncounterService.ActivateEncounter(id, &touristPosition)
+	if encounter == nil || err != nil {
 		println("Error while activating")
 		writer.WriteHeader(http.StatusExpectationFailed)
 		return
 	}
 	writer.WriteHeader(http.StatusCreated)
 	writer.Header().Set("Content-Type", "application/json")
+
+	err = json.NewEncoder(writer).Encode(encounter)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 func (handler *EncounterHandler) FindTouristProgressByTouristId(writer http.ResponseWriter, req *http.Request) {

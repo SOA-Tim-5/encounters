@@ -46,9 +46,9 @@ func (service *EncounterService) CreateKeyPointEncounter(keyPointEncounter *mode
 	return nil
 }
 
-func (service *EncounterService) ActivateEncounter(encounterId int64, position *model.TouristPosition) error {
+func (service *EncounterService) ActivateEncounter(encounterId int64, position *model.TouristPosition) *model.Encounter {
 	var encounter *model.Encounter = service.EncounterRepo.GetEncounter(encounterId)
-	fmt.Println("ff %d",position.TouristId)
+	fmt.Println("ff %d", position.TouristId)
 	if encounter.IsForActivating(position.TouristId, position.Longitude, position.Latitude) && !service.EncounterRepo.HasUserActivatedOrCompletedEncounter(encounterId, position.TouristId) {
 		var instance model.EncounterInstance = model.EncounterInstance{
 			EncounterId: encounterId, UserId: position.TouristId, Status: model.Activated, CompletionTime: time.Now().UTC(),
@@ -56,10 +56,10 @@ func (service *EncounterService) ActivateEncounter(encounterId int64, position *
 
 		err := service.EncounterRepo.CreateEncounterInstance(&instance)
 		if err != nil {
-			return err
+			return nil
 		}
 	}
-	return nil
+	return encounter
 }
 
 func (service *EncounterService) FindTouristProgressByTouristId(id int64) (*model.TouristProgress, error) {
@@ -192,7 +192,7 @@ func (service *EncounterService) FindInstanceByUser(id int64, encounterid int64)
 }
 
 func (service *EncounterService) CompleteMiscEncounter(userid int64, encounterid int64) (*model.TouristProgressDto, error) {
-	foundedInstance := service.EncounterRepo.GetEncounterInstance(encounterid,userid)
+	foundedInstance := service.EncounterRepo.GetEncounterInstance(encounterid, userid)
 
 	service.EncounterRepo.UpdateEncounterInstance(model.Complete(foundedInstance))
 
