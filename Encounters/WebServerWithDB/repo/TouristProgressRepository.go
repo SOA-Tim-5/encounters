@@ -18,3 +18,21 @@ func (repo *TouristProgressRepository) FindTouristProgressByTouristId(id int64) 
 	}
 	return touristProgress, nil
 }
+
+func (repo *TouristProgressRepository) UpdateTouristProgress(touristProgress *model.TouristProgress) error {
+	dbResult := repo.DatabaseConnection.Save(touristProgress)
+	if dbResult.Error != nil {
+		return dbResult.Error
+	}
+	println("Rows affected: ", dbResult.RowsAffected)
+	return nil
+}
+
+func (repo *TouristProgressRepository) GetTouristProgress(userId int64) *model.TouristProgress {
+	var progress *model.TouristProgress
+	dbResult := repo.DatabaseConnection.Where("user_id = ?", userId).First(&progress)
+	if dbResult.Error != nil {
+		return nil
+	}
+	return progress
+}

@@ -120,7 +120,7 @@ func (handler *EncounterHandler) ActivateEncounter(writer http.ResponseWriter, r
 		return
 	}
 }
-
+/*
 func (handler *EncounterHandler) FindTouristProgressByTouristId(writer http.ResponseWriter, req *http.Request) {
 	strid := mux.Vars(req)["id"]
 	id, err := strconv.ParseInt(strid, 10, 64)
@@ -137,7 +137,7 @@ func (handler *EncounterHandler) FindTouristProgressByTouristId(writer http.Resp
 	writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(touristProgressDto)
 }
-
+*/
 func (handler *EncounterHandler) CompleteHiddenLocationEncounter(writer http.ResponseWriter, req *http.Request) {
 	var touristPosition model.TouristPosition
 	err := json.NewDecoder(req.Body).Decode(&touristPosition)

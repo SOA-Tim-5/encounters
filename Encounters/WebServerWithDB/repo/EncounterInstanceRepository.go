@@ -19,3 +19,12 @@ func (repo *EncounterInstanceRepository) FindInstancesByUserId(id int64) ([]mode
 
 	return instances, nil
 }
+
+func (repo *EncounterInstanceRepository) GetEncounterInstance(encounterId int64, userId int64) *model.EncounterInstance {
+	var instance *model.EncounterInstance
+	dbResult := repo.DatabaseConnection.Where("encounter_id = ? and user_id = ?", encounterId, userId).First(&instance)
+	if dbResult.Error != nil {
+		return nil
+	}
+	return instance
+}

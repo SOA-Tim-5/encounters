@@ -62,15 +62,17 @@ func main() {
 		return
 	}
 	encounterRepo := &repo.EncounterRepository{DatabaseConnection: database}
-	encounterService := &service.EncounterService{EncounterRepo: encounterRepo}
-	encounterHandler := &handler.EncounterHandler{EncounterService: encounterService}
-
-	touristProgressRepo := &repo.TouristProgressRepository{DatabaseConnection: database}
-	touristProgressService := &service.TouristProgressService{TouristProgressRepo: touristProgressRepo}
-	touristProgressHandler := &handler.TouristProgressHandler{TouristProgressService: touristProgressService}
-
 	encounterInstanceRepo := &repo.EncounterInstanceRepository{DatabaseConnection: database}
-	encounterInstanceService := &service.EncounterInstanceService{EncounterInstanceRepo: encounterInstanceRepo}
+	touristProgressRepo := &repo.TouristProgressRepository{DatabaseConnection: database}
+
+	encounterService := &service.EncounterService{EncounterRepo: encounterRepo,EncounterInstanceRepo : encounterInstanceRepo,
+		TouristProgressRepo: touristProgressRepo}
+	encounterInstanceService := &service.EncounterInstanceService{EncounterInstanceRepo: encounterInstanceRepo }
+	touristProgressService := &service.TouristProgressService{TouristProgressRepo: touristProgressRepo}
+
+	encounterHandler := &handler.EncounterHandler{EncounterService: encounterService}
+	touristProgressHandler := &handler.TouristProgressHandler{TouristProgressService: touristProgressService}
 	encounterInstanceHandler := &handler.EncounterInstanceHandler{EncounterInstanceService: encounterInstanceService}
+
 	startEncounterServer(encounterHandler,touristProgressHandler, encounterInstanceHandler)
 }
