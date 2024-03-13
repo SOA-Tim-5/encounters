@@ -46,7 +46,7 @@ func (repo *EncounterRepository) CreateSocialEncounter(socialEncounter *model.So
 	return nil
 }
 
-
+/*
 func (repo *EncounterRepository) CreateEncounterInstance(instance *model.EncounterInstance) error {
 	dbResult := repo.DatabaseConnection.Create(instance)
 	if dbResult.Error != nil {
@@ -55,7 +55,7 @@ func (repo *EncounterRepository) CreateEncounterInstance(instance *model.Encount
 	println("Rows affected: ", dbResult.RowsAffected)
 	return nil
 }
-
+*/
 func (repo *EncounterRepository) UpdateEncounter(encounter *model.Encounter) error {
 	dbResult := repo.DatabaseConnection.Save(encounter)
 	if dbResult.Error != nil {
@@ -64,7 +64,7 @@ func (repo *EncounterRepository) UpdateEncounter(encounter *model.Encounter) err
 	println("Rows affected: ", dbResult.RowsAffected)
 	return nil
 }
-
+/*
 func (repo *EncounterRepository) UpdateEncounterInstance(instance *model.EncounterInstance) error {
 	dbResult := repo.DatabaseConnection.Save(instance)
 	if dbResult.Error != nil {
@@ -73,7 +73,7 @@ func (repo *EncounterRepository) UpdateEncounterInstance(instance *model.Encount
 	println("Rows affected: ", dbResult.RowsAffected)
 	return nil
 }
-
+*/
 func (repo *EncounterRepository) GetEncounter(encounterId int64) *model.Encounter {
 	var encounter *model.Encounter
 	dbResult := repo.DatabaseConnection.Where("Id = ?", encounterId).First(&encounter)
@@ -208,7 +208,7 @@ func (repo *EncounterRepository) UpdateTouristProgress(touristProgress *model.To
 	println("Rows affected: ", dbResult.RowsAffected)
 	return nil
 }
-*/
+
 func (repo *EncounterRepository) GetNumberOfActiveInstances(encounterId int64) int64 {
 	var instances int64
 	dbResult := repo.DatabaseConnection.Where("encounter_id = ? and status = 0", encounterId).Table("encounter_instances").Distinct("user_id").Count(&instances)
@@ -226,3 +226,5 @@ func (repo *EncounterRepository) GetActiveInstances(encounterId int64) []*model.
 	}
 	return instances
 }
+
+*/
