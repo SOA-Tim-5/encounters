@@ -246,7 +246,7 @@ func (handler *EncounterHandler) FindAllDoneByUser(writer http.ResponseWriter, r
 		return
 	}
 }
-
+/*
 func (handler *EncounterHandler) FindEncounterInstance(writer http.ResponseWriter, req *http.Request) {
 	strid := mux.Vars(req)["id"]
 	id, err := strconv.ParseInt(strid, 10, 64)
@@ -262,6 +262,7 @@ func (handler *EncounterHandler) FindEncounterInstance(writer http.ResponseWrite
 	writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(instance)
 }
+*/
 
 func (handler *EncounterHandler) CompleteMiscEncounter(writer http.ResponseWriter, req *http.Request) {
 	struserid := mux.Vars(req)["userid"]
