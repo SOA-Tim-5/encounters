@@ -8,7 +8,9 @@ import (
 )
 
 type EncounterService struct {
-	EncounterRepo *repo.EncounterRepository
+	EncounterRepo         *repo.EncounterRepository
+	EncounterInstanceRepo *repo.EncounterInstanceRepository
+	TouristProgressRepo   *repo.TouristProgressRepository
 }
 
 func (service *EncounterService) CreateMiscEncounter(miscEncounter *model.MiscEncounter) error {
@@ -38,14 +40,6 @@ func (service *EncounterService) CreateSocialEncounter(socialEncounter *model.So
 	return nil
 }
 
-func (service *EncounterService) CreateKeyPointEncounter(keyPointEncounter *model.KeyPointEncounter) error {
-	err := service.EncounterRepo.CreateKeyPointEncounter(keyPointEncounter)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (service *EncounterService) ActivateEncounter(encounterId int64, position *model.TouristPosition) *model.Encounter {
 	var encounter *model.Encounter = service.EncounterRepo.GetEncounter(encounterId)
 	fmt.Println("ff %d", position.TouristId)
@@ -54,41 +48,34 @@ func (service *EncounterService) ActivateEncounter(encounterId int64, position *
 			EncounterId: encounterId, UserId: position.TouristId, Status: model.Activated, CompletionTime: time.Now().UTC(),
 		}
 
-		err := service.EncounterRepo.CreateEncounterInstance(&instance)
+		err := service.EncounterInstanceRepo.CreateEncounterInstance(&instance)
 		if err != nil {
 			return nil
 		}
+		return encounter
 	}
-	return encounter
-}
-
-func (service *EncounterService) FindTouristProgressByTouristId(id int64) (*model.TouristProgress, error) {
-	touristProgress, err := service.EncounterRepo.FindTouristProgressByTouristId(id)
-	if err != nil {
-		return nil, fmt.Errorf(fmt.Sprintf("menu item with id %s not found", id))
-	}
-	return &touristProgress, nil
+	return nil
 }
 
 func (service *EncounterService) CompleteHiddenLocationEncounter(encounterId int64, position *model.TouristPosition) error {
-	var instance *model.EncounterInstance = service.EncounterRepo.GetEncounterInstance(encounterId, position.TouristId)
+	var instance *model.EncounterInstance = service.EncounterInstanceRepo.GetEncounterInstance(encounterId, position.TouristId)
 	var encounter *model.HiddenLocationEncounter = service.EncounterRepo.GetHiddenLocationEncounter(encounterId)
 	if instance.Status == model.Activated && encounter.IsUserInCompletitionRange(encounter.PictureLongitude, encounter.PictureLatitude, position.Longitude, position.Latitude) {
 		instance.Status = model.Completed
 		instance.CompletionTime = time.Now().UTC()
-		err2 := service.EncounterRepo.UpdateEncounterInstance(instance)
+		err2 := service.EncounterInstanceRepo.UpdateEncounterInstance(instance)
 		if err2 != nil {
 			return err2
 		}
 
-		var progress *model.TouristProgress = service.EncounterRepo.GetTouristProgress(position.TouristId)
+		var progress *model.TouristProgress = service.TouristProgressRepo.GetTouristProgress(position.TouristId)
 		if progress == nil {
 			progress = &model.TouristProgress{UserId: position.TouristId, Xp: encounter.Encounter.XpReward, Level: 1}
 		} else {
 			progress.Xp += encounter.Encounter.XpReward
 			progress.Level = progress.Xp/100 + 1
 		}
-		err3 := service.EncounterRepo.UpdateTouristProgress(progress)
+		err3 := service.TouristProgressRepo.UpdateTouristProgress(progress)
 		if err3 != nil {
 			return err3
 		}
@@ -158,7 +145,7 @@ func (service *EncounterService) IsUserInCompletitionRange(id int64, userLongitu
 }
 
 func (service *EncounterService) FindAllDoneByUser(id int64) ([]model.Encounter, error) {
-	instances, err := service.EncounterRepo.FindInstancesByUserId(id)
+	instances, err := service.EncounterInstanceRepo.FindInstancesByUserId(id)
 	if err != nil {
 		return nil, fmt.Errorf(fmt.Sprintf("encounters not found"))
 	}
@@ -170,33 +157,12 @@ func (service *EncounterService) FindAllDoneByUser(id int64) ([]model.Encounter,
 	return encounters, nil
 }
 
-func (service *EncounterService) FindInstanceByUser(id int64, encounterid int64) (*model.EncounterInstanceDto, error) {
-	instances, err := service.EncounterRepo.FindInstancesByUserId(id)
-	if err != nil {
-		return nil, fmt.Errorf(fmt.Sprintf("encounters not found"))
-	}
-	var foundedInstance model.EncounterInstance
-	for _, instance := range instances {
-
-		if instance.EncounterId == encounterid {
-			foundedInstance = instance
-			break
-		}
-	}
-	instanceDto := model.EncounterInstanceDto{
-		UserId:         foundedInstance.UserId,
-		Status:         foundedInstance.Status,
-		CompletionTime: foundedInstance.CompletionTime,
-	}
-	return &instanceDto, nil
-}
-
 func (service *EncounterService) CompleteMiscEncounter(userid int64, encounterid int64) (*model.TouristProgressDto, error) {
-	foundedInstance := service.EncounterRepo.GetEncounterInstance(encounterid, userid)
+	foundedInstance := service.EncounterInstanceRepo.GetEncounterInstance(encounterid, userid)
 
-	service.EncounterRepo.UpdateEncounterInstance(model.Complete(foundedInstance))
+	service.EncounterInstanceRepo.UpdateEncounterInstance(model.Complete(foundedInstance))
 
-	touristProgress, err := service.EncounterRepo.FindTouristProgressByTouristId(userid)
+	touristProgress, err := service.TouristProgressRepo.FindTouristProgressByTouristId(userid)
 	if err != nil {
 		return nil, fmt.Errorf(fmt.Sprintf("tourist progress with userid %s not found", userid))
 	}
@@ -208,7 +174,7 @@ func (service *EncounterService) CompleteMiscEncounter(userid int64, encounterid
 
 	var AddedXpTouristProgress = model.AddXp(&touristProgress, encounter.XpReward)
 
-	service.EncounterRepo.UpdateTouristProgress(AddedXpTouristProgress)
+	service.TouristProgressRepo.UpdateTouristProgress(AddedXpTouristProgress)
 
 	touristProgressDto := model.TouristProgressDto{
 		Xp:    AddedXpTouristProgress.Xp,
@@ -218,10 +184,10 @@ func (service *EncounterService) CompleteMiscEncounter(userid int64, encounterid
 }
 
 func (service *EncounterService) CompleteSocialEncounter(encounterId int64, position *model.TouristPosition) (*model.TouristProgressDto, error) {
-	var instance *model.EncounterInstance = service.EncounterRepo.GetEncounterInstance(encounterId, position.TouristId)
+	var instance *model.EncounterInstance = service.EncounterInstanceRepo.GetEncounterInstance(encounterId, position.TouristId)
 	var encounter *model.SocialEncounter = service.EncounterRepo.GetSocialEncounter(encounterId)
-	var numberOfInstances int64 = service.EncounterRepo.GetNumberOfActiveInstances(encounterId)
-	var progress *model.TouristProgress = service.EncounterRepo.GetTouristProgress(position.TouristId)
+	var numberOfInstances int64 = service.EncounterInstanceRepo.GetNumberOfActiveInstances(encounterId)
+	var progress *model.TouristProgress = service.TouristProgressRepo.GetTouristProgress(position.TouristId)
 	if instance.Status == model.Activated && encounter.Encounter.IsInRange(position.Longitude, position.Latitude) && encounter.IsEnoughPeople(int(numberOfInstances)) {
 		var err error
 		progress, err = service.Complete(instance, progress, position.TouristId, &encounter.Encounter)
@@ -238,7 +204,7 @@ func (service *EncounterService) CompleteSocialEncounter(encounterId int64, posi
 func (service *EncounterService) Complete(instance *model.EncounterInstance, progress *model.TouristProgress, userId int64, encounter *model.Encounter) (*model.TouristProgress, error) {
 	instance.Status = model.Completed
 	instance.CompletionTime = time.Now().UTC()
-	err2 := service.EncounterRepo.UpdateEncounterInstance(instance)
+	err2 := service.EncounterInstanceRepo.UpdateEncounterInstance(instance)
 	if err2 != nil {
 		return nil, err2
 	}
@@ -249,7 +215,7 @@ func (service *EncounterService) Complete(instance *model.EncounterInstance, pro
 		progress.Xp += encounter.XpReward
 		progress.Level = progress.Xp/100 + 1
 	}
-	err3 := service.EncounterRepo.UpdateTouristProgress(progress)
+	err3 := service.TouristProgressRepo.UpdateTouristProgress(progress)
 	if err3 != nil {
 		return nil, err3
 	}
@@ -262,14 +228,14 @@ func (service *EncounterService) Complete(instance *model.EncounterInstance, pro
 }
 
 func (service *EncounterService) CompleteAllInRange(encounterId int64) error {
-	var instances []*model.EncounterInstance = service.EncounterRepo.GetActiveInstances(encounterId)
+	var instances []*model.EncounterInstance = service.EncounterInstanceRepo.GetActiveInstances(encounterId)
 	if instances == nil {
 		return nil
 	}
 
 	for i := 0; i < len(instances); i++ {
 		var encounter *model.SocialEncounter = service.EncounterRepo.GetSocialEncounter(encounterId)
-		var progress *model.TouristProgress = service.EncounterRepo.GetTouristProgress(instances[i].UserId)
+		var progress *model.TouristProgress = service.TouristProgressRepo.GetTouristProgress(instances[i].UserId)
 		_, err := service.Complete(instances[i], progress, instances[i].UserId, &encounter.Encounter)
 		if err != nil {
 			return err

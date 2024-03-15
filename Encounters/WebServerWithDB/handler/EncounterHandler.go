@@ -121,23 +121,6 @@ func (handler *EncounterHandler) ActivateEncounter(writer http.ResponseWriter, r
 	}
 }
 
-func (handler *EncounterHandler) FindTouristProgressByTouristId(writer http.ResponseWriter, req *http.Request) {
-	strid := mux.Vars(req)["id"]
-	id, err := strconv.ParseInt(strid, 10, 64)
-	touristProgress, err := handler.EncounterService.FindTouristProgressByTouristId(id)
-	writer.Header().Set("Content-Type", "application/json")
-	if err != nil {
-		writer.WriteHeader(http.StatusNotFound)
-		return
-	}
-	touristProgressDto := model.TouristProgressDto{
-		Xp:    touristProgress.Xp,
-		Level: touristProgress.Level,
-	}
-	writer.WriteHeader(http.StatusOK)
-	json.NewEncoder(writer).Encode(touristProgressDto)
-}
-
 func (handler *EncounterHandler) CompleteHiddenLocationEncounter(writer http.ResponseWriter, req *http.Request) {
 	var touristPosition model.TouristPosition
 	err := json.NewDecoder(req.Body).Decode(&touristPosition)
@@ -245,22 +228,6 @@ func (handler *EncounterHandler) FindAllDoneByUser(writer http.ResponseWriter, r
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-}
-
-func (handler *EncounterHandler) FindEncounterInstance(writer http.ResponseWriter, req *http.Request) {
-	strid := mux.Vars(req)["id"]
-	id, err := strconv.ParseInt(strid, 10, 64)
-	strencounterid := mux.Vars(req)["encounterId"]
-	encounterid, err := strconv.ParseInt(strencounterid, 10, 64)
-	instance, err := handler.EncounterService.FindInstanceByUser(id, encounterid)
-	writer.Header().Set("Content-Type", "application/json")
-	if err != nil {
-		writer.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	writer.WriteHeader(http.StatusOK)
-	json.NewEncoder(writer).Encode(instance)
 }
 
 func (handler *EncounterHandler) CompleteMiscEncounter(writer http.ResponseWriter, req *http.Request) {
