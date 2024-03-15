@@ -8,9 +8,9 @@ import (
 )
 
 type EncounterService struct {
-	EncounterRepo *repo.EncounterRepository
+	EncounterRepo         *repo.EncounterRepository
 	EncounterInstanceRepo *repo.EncounterInstanceRepository
-	TouristProgressRepo *repo.TouristProgressRepository
+	TouristProgressRepo   *repo.TouristProgressRepository
 }
 
 func (service *EncounterService) CreateMiscEncounter(miscEncounter *model.MiscEncounter) error {
@@ -40,7 +40,6 @@ func (service *EncounterService) CreateSocialEncounter(socialEncounter *model.So
 	return nil
 }
 
-
 func (service *EncounterService) ActivateEncounter(encounterId int64, position *model.TouristPosition) *model.Encounter {
 	var encounter *model.Encounter = service.EncounterRepo.GetEncounter(encounterId)
 	fmt.Println("ff %d", position.TouristId)
@@ -53,18 +52,11 @@ func (service *EncounterService) ActivateEncounter(encounterId int64, position *
 		if err != nil {
 			return nil
 		}
+		return encounter
 	}
-	return encounter
+	return nil
 }
-/*
-func (service *EncounterService) FindTouristProgressByTouristId(id int64) (*model.TouristProgress, error) {
-	touristProgress, err := service.EncounterRepo.FindTouristProgressByTouristId(id)
-	if err != nil {
-		return nil, fmt.Errorf(fmt.Sprintf("menu item with id %s not found", id))
-	}
-	return &touristProgress, nil
-}
-*/
+
 func (service *EncounterService) CompleteHiddenLocationEncounter(encounterId int64, position *model.TouristPosition) error {
 	var instance *model.EncounterInstance = service.EncounterInstanceRepo.GetEncounterInstance(encounterId, position.TouristId)
 	var encounter *model.HiddenLocationEncounter = service.EncounterRepo.GetHiddenLocationEncounter(encounterId)
@@ -164,28 +156,7 @@ func (service *EncounterService) FindAllDoneByUser(id int64) ([]model.Encounter,
 	}
 	return encounters, nil
 }
-/*
-func (service *EncounterService) FindInstanceByUser(id int64, encounterid int64) (*model.EncounterInstanceDto, error) {
-	instances, err := service.EncounterRepo.FindInstancesByUserId(id)
-	if err != nil {
-		return nil, fmt.Errorf(fmt.Sprintf("encounters not found"))
-	}
-	var foundedInstance model.EncounterInstance
-	for _, instance := range instances {
 
-		if instance.EncounterId == encounterid {
-			foundedInstance = instance
-			break
-		}
-	}
-	instanceDto := model.EncounterInstanceDto{
-		UserId:         foundedInstance.UserId,
-		Status:         foundedInstance.Status,
-		CompletionTime: foundedInstance.CompletionTime,
-	}
-	return &instanceDto, nil
-}
-*/
 func (service *EncounterService) CompleteMiscEncounter(userid int64, encounterid int64) (*model.TouristProgressDto, error) {
 	foundedInstance := service.EncounterInstanceRepo.GetEncounterInstance(encounterid, userid)
 

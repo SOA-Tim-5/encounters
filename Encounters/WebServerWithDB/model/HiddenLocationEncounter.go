@@ -30,14 +30,9 @@ type HiddenLocationEncounterDto struct {
 }
 
 func IsUserInRange(encounter *Encounter, userLongitude float64, userLatitude float64) bool {
-	var earthRadius float64 = 6371000
-	var latitudeDistance = userLatitude - encounter.Latitude
-	var longitudeDistance = userLongitude - encounter.Longitude
-	var a = math.Sin(latitudeDistance/2)*math.Sin(latitudeDistance/2) + math.Cos(encounter.Latitude)*math.Cos(userLatitude) + math.Sin(longitudeDistance/2)*math.Sin(longitudeDistance/2)
-	var c = 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
-	var distance = earthRadius * c
+	var distance = math.Acos(math.Sin(3.14/180*(encounter.Latitude))*math.Sin(3.14/180*(userLatitude))+math.Cos(3.14/180*(encounter.Latitude))*math.Cos(3.14/180*userLatitude)*math.Cos(3.14/180*encounter.Longitude-3.14/180*userLongitude)) * 6371000
 
-	return distance < 10
+	return distance < encounter.Radius
 }
 
 func (encounter *HiddenLocationEncounter) IsUserInCompletitionRange(longitude float64, latitude float64, userLongitude float64, userLatitude float64) bool {
@@ -49,5 +44,5 @@ func (encounter *HiddenLocationEncounter) IsUserInCompletitionRange(longitude fl
 
 	fmt.Println(distance)
 
-	return distance < 10
+	return distance < 100
 }
