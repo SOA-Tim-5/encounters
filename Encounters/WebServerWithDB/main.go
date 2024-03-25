@@ -15,7 +15,7 @@ import (
 )
 
 func initDB() *gorm.DB {
-	dsn := "user=postgres password=super dbname=explorer-v1 host=localhost port=5432 sslmode=disable search_path=encounters"
+	dsn := "user=postgres password=super dbname=explorer host=database port=5432 sslmode=disable search_path=encounters"
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
@@ -23,6 +23,11 @@ func initDB() *gorm.DB {
 		return nil
 	}
 
+	database = database.Exec("create schema if not exists encounters")
+	if database.Error != nil {
+		print(database.Error)
+		return nil
+	}
 	err = database.AutoMigrate(&model.Encounter{}, &model.HiddenLocationEncounter{}, &model.SocialEncounter{},
 		&model.KeyPointEncounter{}, &model.MiscEncounter{}, &model.TouristProgress{}, &model.EncounterInstance{})
 	if err != nil {
@@ -32,7 +37,7 @@ func initDB() *gorm.DB {
 	return database
 }
 
-func startEncounterServer(handler *handler.EncounterHandler,touristProgressHandler *handler.TouristProgressHandler,
+func startEncounterServer(handler *handler.EncounterHandler, touristProgressHandler *handler.TouristProgressHandler,
 	encounterInstanceHandler *handler.EncounterInstanceHandler) {
 	router := mux.NewRouter().StrictSlash(true)
 
@@ -65,14 +70,14 @@ func main() {
 	encounterInstanceRepo := &repo.EncounterInstanceRepository{DatabaseConnection: database}
 	touristProgressRepo := &repo.TouristProgressRepository{DatabaseConnection: database}
 
-	encounterService := &service.EncounterService{EncounterRepo: encounterRepo,EncounterInstanceRepo : encounterInstanceRepo,
+	encounterService := &service.EncounterService{EncounterRepo: encounterRepo, EncounterInstanceRepo: encounterInstanceRepo,
 		TouristProgressRepo: touristProgressRepo}
-	encounterInstanceService := &service.EncounterInstanceService{EncounterInstanceRepo: encounterInstanceRepo }
+	encounterInstanceService := &service.EncounterInstanceService{EncounterInstanceRepo: encounterInstanceRepo}
 	touristProgressService := &service.TouristProgressService{TouristProgressRepo: touristProgressRepo}
 
 	encounterHandler := &handler.EncounterHandler{EncounterService: encounterService}
 	touristProgressHandler := &handler.TouristProgressHandler{TouristProgressService: touristProgressService}
 	encounterInstanceHandler := &handler.EncounterInstanceHandler{EncounterInstanceService: encounterInstanceService}
 
-	startEncounterServer(encounterHandler,touristProgressHandler, encounterInstanceHandler)
+	startEncounterServer(encounterHandler, touristProgressHandler, encounterInstanceHandler)
 }

@@ -15,6 +15,7 @@ type TouristProgressHandler struct {
 }
 
 func (handler *TouristProgressHandler) FindTouristProgressByTouristId(writer http.ResponseWriter, req *http.Request) {
+	println("tourist progress")
 	strid := mux.Vars(req)["id"]
 	id, err := strconv.ParseInt(strid, 10, 64)
 	touristProgress, err := handler.TouristProgressService.FindTouristProgressByTouristId(id)
