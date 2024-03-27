@@ -23,11 +23,6 @@ func initDB() *gorm.DB {
 		return nil
 	}
 
-	database = database.Exec("create schema if not exists encounters")
-	if database.Error != nil {
-		print(database.Error)
-		return nil
-	}
 	err = database.AutoMigrate(&model.Encounter{}, &model.HiddenLocationEncounter{}, &model.SocialEncounter{},
 		&model.KeyPointEncounter{}, &model.MiscEncounter{}, &model.TouristProgress{}, &model.EncounterInstance{})
 	if err != nil {
