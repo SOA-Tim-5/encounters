@@ -146,6 +146,7 @@ func (handler *EncounterHandler) CompleteHiddenLocationEncounter(writer http.Res
 }
 
 func (handler *EncounterHandler) FindAllInRangeOf(writer http.ResponseWriter, req *http.Request) {
+	println("in range")
 	strrange := mux.Vars(req)["range"]
 	givenRange, err := strconv.ParseFloat(strrange, 64)
 	strLong := mux.Vars(req)["long"]
