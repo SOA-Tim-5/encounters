@@ -26,7 +26,6 @@ func (repo *EncounterRepository) CreateMiscEncounter(miscEncounter *model.MiscEn
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	encountersCollection := repo.getEncounterCollection()
-
 	result, err := encountersCollection.InsertOne(ctx, &miscEncounter)
 	if err != nil {
 		repo.store.logger.Println(err)

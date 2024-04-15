@@ -6,6 +6,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type EncounterHandler struct {
@@ -17,14 +20,10 @@ func NewEncounterHandler(encounterService *service.EncounterService, log *log.Lo
 	return &EncounterHandler{encounterService, log}
 }
 
-func (p *EncounterHandler) MiddlewareContentTypeSet(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, h *http.Request) {
-		p.logger.Println("Method [", h.Method, "] - Hit path :", h.URL.Path)
-
-		rw.Header().Add("Content-Type", "application/json")
-
-		next.ServeHTTP(rw, h)
-	})
+func CreateId() int64 {
+	currentTimestamp := time.Now().UnixNano() / int64(time.Microsecond)
+	uniqueID := uuid.New().ID()
+	return currentTimestamp + int64(uniqueID)
 }
 
 func (handler *EncounterHandler) CreateMiscEncounter(writer http.ResponseWriter, req *http.Request) {
@@ -36,6 +35,7 @@ func (handler *EncounterHandler) CreateMiscEncounter(writer http.ResponseWriter,
 		return
 	}
 	newMiscEncounter := model.MiscEncounter{
+		Id: CreateId(),
 		Encounter: model.Encounter{Title: miscEncounterDto.Title, Description: miscEncounterDto.Description,
 			Picture: miscEncounterDto.Picture, Longitude: miscEncounterDto.Longitude, Latitude: miscEncounterDto.Latitude,
 			Radius: miscEncounterDto.Radius, XpReward: miscEncounterDto.XpReward, Status: miscEncounterDto.Status,
@@ -61,6 +61,7 @@ func (handler *EncounterHandler) CreateSocialEncounter(writer http.ResponseWrite
 		return
 	}
 	newSocialEncounter := model.SocialEncounter{
+		Id: CreateId(),
 		Encounter: model.Encounter{Title: socialEncounterDto.Title, Description: socialEncounterDto.Description,
 			Picture: socialEncounterDto.Picture, Longitude: socialEncounterDto.Longitude, Latitude: socialEncounterDto.Latitude,
 			Radius: socialEncounterDto.Radius, XpReward: socialEncounterDto.XpReward, Status: socialEncounterDto.Status,
@@ -86,6 +87,7 @@ func (handler *EncounterHandler) CreateHiddenLocationEncounter(writer http.Respo
 		return
 	}
 	newHiddenLocationEncounter := model.HiddenLocationEncounter{
+		Id: CreateId(),
 		Encounter: model.Encounter{Title: hiddenLocationEncounterDto.Title, Description: hiddenLocationEncounterDto.Description,
 			Picture: hiddenLocationEncounterDto.Picture, Longitude: hiddenLocationEncounterDto.Longitude, Latitude: hiddenLocationEncounterDto.Latitude,
 			Radius: hiddenLocationEncounterDto.Radius, XpReward: hiddenLocationEncounterDto.XpReward, Status: hiddenLocationEncounterDto.Status,
