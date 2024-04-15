@@ -1,24 +1,43 @@
 package repo
 
 import (
+	"context"
 	"database-example/model"
+	"time"
 
-	"gorm.io/gorm"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type TouristProgressRepository struct {
-	DatabaseConnection *gorm.DB
+	store *Repository
 }
 
-func (repo *TouristProgressRepository) FindTouristProgressByTouristId(id int64) (model.TouristProgress, error) {
-	touristProgress := model.TouristProgress{}
-	dbResult := repo.DatabaseConnection.First(&touristProgress, "user_id = ?", id)
-	if dbResult != nil {
-		return touristProgress, dbResult.Error
+func (repo *TouristProgressRepository) getTouristProgressCollection() *mongo.Collection {
+	db := repo.store.cli.Database("mongoDemo")
+	progressCollection := db.Collection("touristProgress")
+	return progressCollection
+}
+
+func NewTouristProgressRepository(r *Repository) *TouristProgressRepository {
+	return &TouristProgressRepository{r}
+}
+func (repo *TouristProgressRepository) FindTouristProgressByTouristId(id int64) (*model.TouristProgress, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	progressCollection := repo.getTouristProgressCollection()
+
+	var progress model.TouristProgress
+	err := progressCollection.FindOne(ctx, bson.M{"userid": id}).Decode(&progress)
+	if err != nil {
+		repo.store.logger.Println(err)
+		return nil, err
 	}
-	return touristProgress, nil
+	return &progress, nil
 }
 
+/*
 func (repo *TouristProgressRepository) UpdateTouristProgress(touristProgress *model.TouristProgress) error {
 	dbResult := repo.DatabaseConnection.Save(touristProgress)
 	if dbResult.Error != nil {
@@ -27,12 +46,4 @@ func (repo *TouristProgressRepository) UpdateTouristProgress(touristProgress *mo
 	println("Rows affected: ", dbResult.RowsAffected)
 	return nil
 }
-
-func (repo *TouristProgressRepository) GetTouristProgress(userId int64) *model.TouristProgress {
-	var progress *model.TouristProgress
-	dbResult := repo.DatabaseConnection.Where("user_id = ?", userId).First(&progress)
-	if dbResult.Error != nil {
-		return nil
-	}
-	return progress
-}
+*/

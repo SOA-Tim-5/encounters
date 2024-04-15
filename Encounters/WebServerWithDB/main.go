@@ -17,21 +17,12 @@ import (
 )
 
 /*
-func startEncounterServer(handler *handler.EncounterHandler, touristProgressHandler *handler.TouristProgressHandler,
+	OSTALO JOS
 
-		encounterInstanceHandler *handler.EncounterInstanceHandler) {
-		router := mux.NewRouter().StrictSlash(true)
-
-
-		router.HandleFunc("/encounters/activate/{id}", handler.ActivateEncounter).Methods("POST")
-		router.HandleFunc("/encounters/touristProgress/{id}", touristProgressHandler.FindTouristProgressByTouristId).Methods("GET")
-		router.HandleFunc("/encounters/complete/{id}", handler.CompleteHiddenLocationEncounter).Methods("POST")
-		router.HandleFunc("/encounters/complete/{userid}/{encounterId}/misc", handler.CompleteMiscEncounter).Methods("GET")
-		router.HandleFunc("/encounters/complete/{encounterId}/social", handler.CompleteSocialEncounter).Methods("POST")
-
-		println("Server starting")
-		log.Fatal(http.ListenAndServe(":81", router))
-	}
+router.HandleFunc("/encounters/activate/{id}", handler.ActivateEncounter).Methods("POST")
+router.HandleFunc("/encounters/complete/{id}", handler.CompleteHiddenLocationEncounter).Methods("POST")
+router.HandleFunc("/encounters/complete/{userid}/{encounterId}/misc", handler.CompleteMiscEncounter).Methods("GET")
+router.HandleFunc("/encounters/complete/{encounterId}/social", handler.CompleteSocialEncounter).Methods("POST")
 */
 func main() {
 
@@ -57,12 +48,15 @@ func main() {
 
 	encounterRepo := repo.NewEncounterRepository(store)
 	encounterInstanceRepo := repo.NewEncounterInstanceRepository(store)
+	toristProgressRepo := repo.NewTouristProgressRepository(store)
 
-	encounterService := service.NewEncounterService(encounterRepo, encounterInstanceRepo)
+	encounterService := service.NewEncounterService(encounterRepo, encounterInstanceRepo, toristProgressRepo)
 	encounterInstanceService := service.NewEncounterInstanceService(encounterInstanceRepo)
+	toiristProgressService := service.NewTouristProgressService(toristProgressRepo)
 
 	encounterHandler := handler.NewEncounterHandler(encounterService, logger)
 	encounterInstanceHandler := handler.NewEncounterInstanceHandler(encounterInstanceService)
+	touristProgressHandler := handler.NewTouristProgressHandler(toiristProgressService)
 
 	router := mux.NewRouter().StrictSlash(true)
 
@@ -75,6 +69,7 @@ func main() {
 	router.HandleFunc("/encounters/hidden/{id}", encounterHandler.FindHiddenLocationEncounterById).Methods("GET")
 	router.HandleFunc("/encounters/doneByUser/{id}", encounterHandler.FindAllDoneByUser).Methods("GET")
 	router.HandleFunc("/encounters/instance/{id}/{encounterId}/encounter", encounterInstanceHandler.FindEncounterInstance).Methods("GET")
+	router.HandleFunc("/encounters/touristProgress/{id}", touristProgressHandler.FindTouristProgressByTouristId).Methods("GET")
 
 	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))
 

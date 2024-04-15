@@ -9,10 +9,11 @@ import (
 type EncounterService struct {
 	EncounterRepo         *repo.EncounterRepository
 	EncounterInstanceRepo *repo.EncounterInstanceRepository
+	TouristProgressRepo   *repo.TouristProgressRepository
 }
 
-func NewEncounterService(re *repo.EncounterRepository, ri *repo.EncounterInstanceRepository) *EncounterService {
-	return &EncounterService{re, ri}
+func NewEncounterService(re *repo.EncounterRepository, ri *repo.EncounterInstanceRepository, rtp *repo.TouristProgressRepository) *EncounterService {
+	return &EncounterService{re, ri, rtp}
 }
 
 func (service *EncounterService) CreateMiscEncounter(miscEncounter *model.MiscEncounter) error {

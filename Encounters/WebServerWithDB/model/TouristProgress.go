@@ -4,7 +4,7 @@ type TouristProgress struct {
 	Id     int64 `bson:"_id,omitempty" json:"id"`
 	UserId int64 `bson:"userid,omitempty" json:"userid"`
 	Xp     int   `bson:"xp,omitempty" json:"xp"`
-	Level  int   `level:"_id,omitempty" json:"level"`
+	Level  int   `bson:"level,omitempty" json:"level"`
 }
 
 type TouristProgressDto struct {
