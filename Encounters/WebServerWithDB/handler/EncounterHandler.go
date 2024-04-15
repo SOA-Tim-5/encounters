@@ -6,9 +6,11 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 type EncounterHandler struct {
@@ -34,9 +36,10 @@ func (handler *EncounterHandler) CreateMiscEncounter(writer http.ResponseWriter,
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	id := CreateId()
 	newMiscEncounter := model.MiscEncounter{
-		Id: CreateId(),
-		Encounter: model.Encounter{Title: miscEncounterDto.Title, Description: miscEncounterDto.Description,
+		EncounterId: id,
+		Encounter: model.Encounter{Id: id, Title: miscEncounterDto.Title, Description: miscEncounterDto.Description,
 			Picture: miscEncounterDto.Picture, Longitude: miscEncounterDto.Longitude, Latitude: miscEncounterDto.Latitude,
 			Radius: miscEncounterDto.Radius, XpReward: miscEncounterDto.XpReward, Status: miscEncounterDto.Status,
 			Type: miscEncounterDto.Type},
@@ -60,9 +63,10 @@ func (handler *EncounterHandler) CreateSocialEncounter(writer http.ResponseWrite
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	id := CreateId()
 	newSocialEncounter := model.SocialEncounter{
-		Id: CreateId(),
-		Encounter: model.Encounter{Title: socialEncounterDto.Title, Description: socialEncounterDto.Description,
+		EncounterId: id,
+		Encounter: model.Encounter{Id: id, Title: socialEncounterDto.Title, Description: socialEncounterDto.Description,
 			Picture: socialEncounterDto.Picture, Longitude: socialEncounterDto.Longitude, Latitude: socialEncounterDto.Latitude,
 			Radius: socialEncounterDto.Radius, XpReward: socialEncounterDto.XpReward, Status: socialEncounterDto.Status,
 			Type: socialEncounterDto.Type},
@@ -86,9 +90,10 @@ func (handler *EncounterHandler) CreateHiddenLocationEncounter(writer http.Respo
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	id := CreateId()
 	newHiddenLocationEncounter := model.HiddenLocationEncounter{
-		Id: CreateId(),
-		Encounter: model.Encounter{Title: hiddenLocationEncounterDto.Title, Description: hiddenLocationEncounterDto.Description,
+		EncounterId: id,
+		Encounter: model.Encounter{Id: id, Title: hiddenLocationEncounterDto.Title, Description: hiddenLocationEncounterDto.Description,
 			Picture: hiddenLocationEncounterDto.Picture, Longitude: hiddenLocationEncounterDto.Longitude, Latitude: hiddenLocationEncounterDto.Latitude,
 			Radius: hiddenLocationEncounterDto.Radius, XpReward: hiddenLocationEncounterDto.XpReward, Status: hiddenLocationEncounterDto.Status,
 			Type: hiddenLocationEncounterDto.Type},
@@ -106,69 +111,69 @@ func (handler *EncounterHandler) CreateHiddenLocationEncounter(writer http.Respo
 }
 
 /*
-func (handler *EncounterHandler) ActivateEncounter(writer http.ResponseWriter, req *http.Request) {
-	var touristPosition model.TouristPosition
-	err := json.NewDecoder(req.Body).Decode(&touristPosition)
-	if err != nil {
-		println("Error while parsing json")
-		writer.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	var id int64
-	vars := mux.Vars(req)
-	ids, ok := vars["id"]
-	if !ok {
-		println("id is missing in parameters")
-	}
-	id, err = strconv.ParseInt(ids, 10, 64)
-	encounter := handler.EncounterService.ActivateEncounter(id, &touristPosition)
-	if encounter == nil || err != nil {
-		println("Error while activating")
-		writer.WriteHeader(http.StatusExpectationFailed)
-		return
-	}
-	writer.WriteHeader(http.StatusCreated)
-	writer.Header().Set("Content-Type", "application/json")
+	func (handler *EncounterHandler) ActivateEncounter(writer http.ResponseWriter, req *http.Request) {
+		var touristPosition model.TouristPosition
+		err := json.NewDecoder(req.Body).Decode(&touristPosition)
+		if err != nil {
+			println("Error while parsing json")
+			writer.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		var id int64
+		vars := mux.Vars(req)
+		ids, ok := vars["id"]
+		if !ok {
+			println("id is missing in parameters")
+		}
+		id, err = strconv.ParseInt(ids, 10, 64)
+		encounter := handler.EncounterService.ActivateEncounter(id, &touristPosition)
+		if encounter == nil || err != nil {
+			println("Error while activating")
+			writer.WriteHeader(http.StatusExpectationFailed)
+			return
+		}
+		writer.WriteHeader(http.StatusCreated)
+		writer.Header().Set("Content-Type", "application/json")
 
-	err = json.NewEncoder(writer).Encode(encounter)
-	if err != nil {
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-}
-
-func (handler *EncounterHandler) CompleteHiddenLocationEncounter(writer http.ResponseWriter, req *http.Request) {
-	var touristPosition model.TouristPosition
-	err := json.NewDecoder(req.Body).Decode(&touristPosition)
-	if err != nil {
-		println("Error while parsing json")
-		writer.WriteHeader(http.StatusBadRequest)
+		err = json.NewEncoder(writer).Encode(encounter)
+		if err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 	}
 
-	vars := mux.Vars(req)
-	id, ok := vars["id"]
-	if !ok {
-		println("id is missing in parameters")
-	}
-	encounterId, err := strconv.ParseFloat(id, 64)
-	err = handler.EncounterService.CompleteHiddenLocationEncounter(int64(encounterId), &touristPosition)
-	if err != nil {
-		println("Error while completing hidden location encounter")
-		writer.WriteHeader(http.StatusExpectationFailed)
-		return
-	}
-	writer.WriteHeader(http.StatusCreated)
-	writer.Header().Set("Content-Type", "application/json")
-}
+	func (handler *EncounterHandler) CompleteHiddenLocationEncounter(writer http.ResponseWriter, req *http.Request) {
+		var touristPosition model.TouristPosition
+		err := json.NewDecoder(req.Body).Decode(&touristPosition)
+		if err != nil {
+			println("Error while parsing json")
+			writer.WriteHeader(http.StatusBadRequest)
+		}
 
+		vars := mux.Vars(req)
+		id, ok := vars["id"]
+		if !ok {
+			println("id is missing in parameters")
+		}
+		encounterId, err := strconv.ParseFloat(id, 64)
+		err = handler.EncounterService.CompleteHiddenLocationEncounter(int64(encounterId), &touristPosition)
+		if err != nil {
+			println("Error while completing hidden location encounter")
+			writer.WriteHeader(http.StatusExpectationFailed)
+			return
+		}
+		writer.WriteHeader(http.StatusCreated)
+		writer.Header().Set("Content-Type", "application/json")
+	}
+*/
 func (handler *EncounterHandler) FindAllInRangeOf(writer http.ResponseWriter, req *http.Request) {
 	println("in range")
 	strrange := mux.Vars(req)["range"]
-	givenRange, err := strconv.ParseFloat(strrange, 64)
+	givenRange, _ := strconv.ParseFloat(strrange, 64)
 	strLong := mux.Vars(req)["long"]
-	userLongitude, err := strconv.ParseFloat(strLong, 64)
+	userLongitude, _ := strconv.ParseFloat(strLong, 64)
 	strLat := mux.Vars(req)["lat"]
-	userLatitude, err := strconv.ParseFloat(strLat, 64)
+	userLatitude, _ := strconv.ParseFloat(strLat, 64)
 	encounters, err := handler.EncounterService.FindAllInRangeOf(givenRange, userLongitude, userLatitude)
 	writer.Header().Set("Content-Type", "application/json")
 	if err != nil {
@@ -200,7 +205,7 @@ func (handler *EncounterHandler) FindAll(writer http.ResponseWriter, req *http.R
 
 func (handler *EncounterHandler) FindHiddenLocationEncounterById(writer http.ResponseWriter, req *http.Request) {
 	strid := mux.Vars(req)["id"]
-	id, err := strconv.ParseInt(strid, 10, 64)
+	id, _ := strconv.ParseInt(strid, 10, 64)
 	hiddenLocationEncounter, err := handler.EncounterService.FindHiddenLocationEncounterById(id)
 	writer.Header().Set("Content-Type", "application/json")
 	if err != nil {
@@ -214,9 +219,9 @@ func (handler *EncounterHandler) FindHiddenLocationEncounterById(writer http.Res
 
 func (handler *EncounterHandler) IsUserInCompletitionRange(writer http.ResponseWriter, req *http.Request) {
 	strid := mux.Vars(req)["id"]
-	id, err := strconv.ParseInt(strid, 10, 64)
+	id, _ := strconv.ParseInt(strid, 10, 64)
 	strLong := mux.Vars(req)["long"]
-	userLongitude, err := strconv.ParseFloat(strLong, 64)
+	userLongitude, _ := strconv.ParseFloat(strLong, 64)
 	strLat := mux.Vars(req)["lat"]
 	userLatitude, err := strconv.ParseFloat(strLat, 64)
 	isUserInCompletitionRange := handler.EncounterService.IsUserInCompletitionRange(id, userLongitude, userLatitude)
@@ -230,6 +235,7 @@ func (handler *EncounterHandler) IsUserInCompletitionRange(writer http.ResponseW
 	json.NewEncoder(writer).Encode(isUserInCompletitionRange)
 }
 
+/*
 func (handler *EncounterHandler) FindAllDoneByUser(writer http.ResponseWriter, req *http.Request) {
 	strid := mux.Vars(req)["id"]
 	id, err := strconv.ParseInt(strid, 10, 64)

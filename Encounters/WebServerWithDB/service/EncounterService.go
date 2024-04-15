@@ -3,6 +3,7 @@ package service
 import (
 	"database-example/model"
 	"database-example/repo"
+	"fmt"
 )
 
 type EncounterService struct {
@@ -41,59 +42,59 @@ func (service *EncounterService) CreateSocialEncounter(socialEncounter *model.So
 }
 
 /*
-func (service *EncounterService) ActivateEncounter(encounterId int64, position *model.TouristPosition) *model.Encounter {
-	var encounter *model.Encounter = service.EncounterRepo.GetEncounter(encounterId)
-	fmt.Println("ff %d", position.TouristId)
-	if encounter.IsForActivating(position.TouristId, position.Longitude, position.Latitude) && !service.EncounterRepo.HasUserActivatedOrCompletedEncounter(encounterId, position.TouristId) {
-		var instance model.EncounterInstance = model.EncounterInstance{
-			EncounterId: encounterId, UserId: position.TouristId, Status: model.Activated, CompletionTime: time.Now().UTC(),
-		}
+	func (service *EncounterService) ActivateEncounter(encounterId int64, position *model.TouristPosition) *model.Encounter {
+		var encounter *model.Encounter = service.EncounterRepo.GetEncounter(encounterId)
+		fmt.Println("ff %d", position.TouristId)
+		if encounter.IsForActivating(position.TouristId, position.Longitude, position.Latitude) && !service.EncounterRepo.HasUserActivatedOrCompletedEncounter(encounterId, position.TouristId) {
+			var instance model.EncounterInstance = model.EncounterInstance{
+				EncounterId: encounterId, UserId: position.TouristId, Status: model.Activated, CompletionTime: time.Now().UTC(),
+			}
 
-		err := service.EncounterInstanceRepo.CreateEncounterInstance(&instance)
-		if err != nil {
-			return nil
+			err := service.EncounterInstanceRepo.CreateEncounterInstance(&instance)
+			if err != nil {
+				return nil
+			}
+			return encounter
 		}
-		return encounter
+		return nil
 	}
-	return nil
-}
 
-func (service *EncounterService) CompleteHiddenLocationEncounter(encounterId int64, position *model.TouristPosition) error {
-	var instance *model.EncounterInstance = service.EncounterInstanceRepo.GetEncounterInstance(encounterId, position.TouristId)
-	var encounter *model.HiddenLocationEncounter = service.EncounterRepo.GetHiddenLocationEncounter(encounterId)
-	if instance.Status == model.Activated && encounter.IsUserInCompletitionRange(encounter.PictureLongitude, encounter.PictureLatitude, position.Longitude, position.Latitude) {
-		instance.Status = model.Completed
-		instance.CompletionTime = time.Now().UTC()
-		err2 := service.EncounterInstanceRepo.UpdateEncounterInstance(instance)
-		if err2 != nil {
-			return err2
-		}
+	func (service *EncounterService) CompleteHiddenLocationEncounter(encounterId int64, position *model.TouristPosition) error {
+		var instance *model.EncounterInstance = service.EncounterInstanceRepo.GetEncounterInstance(encounterId, position.TouristId)
+		var encounter *model.HiddenLocationEncounter = service.EncounterRepo.GetHiddenLocationEncounter(encounterId)
+		if instance.Status == model.Activated && encounter.IsUserInCompletitionRange(encounter.PictureLongitude, encounter.PictureLatitude, position.Longitude, position.Latitude) {
+			instance.Status = model.Completed
+			instance.CompletionTime = time.Now().UTC()
+			err2 := service.EncounterInstanceRepo.UpdateEncounterInstance(instance)
+			if err2 != nil {
+				return err2
+			}
 
-		var progress *model.TouristProgress = service.TouristProgressRepo.GetTouristProgress(position.TouristId)
-		if progress == nil {
-			progress = &model.TouristProgress{UserId: position.TouristId, Xp: encounter.Encounter.XpReward, Level: 1}
+			var progress *model.TouristProgress = service.TouristProgressRepo.GetTouristProgress(position.TouristId)
+			if progress == nil {
+				progress = &model.TouristProgress{UserId: position.TouristId, Xp: encounter.Encounter.XpReward, Level: 1}
+			} else {
+				progress.Xp += encounter.Encounter.XpReward
+				progress.Level = progress.Xp/100 + 1
+			}
+			err3 := service.TouristProgressRepo.UpdateTouristProgress(progress)
+			if err3 != nil {
+				return err3
+			}
+
 		} else {
-			progress.Xp += encounter.Encounter.XpReward
-			progress.Level = progress.Xp/100 + 1
+			println("Can't be completed")
 		}
-		err3 := service.TouristProgressRepo.UpdateTouristProgress(progress)
-		if err3 != nil {
-			return err3
-		}
-
-	} else {
-		println("Can't be completed")
+		return nil
 	}
-	return nil
-}
-
+*/
 func (service *EncounterService) FindAllInRangeOf(givenrange float64, userLongitude float64, userLatitude float64) ([]model.Encounter, error) {
 	allencounters, err := service.EncounterRepo.FindAll()
 	if err != nil {
 		return nil, fmt.Errorf(fmt.Sprintf("encounters not found"))
 	}
 	var encountersInRange []model.Encounter
-	for _, encounter := range allencounters {
+	for _, encounter := range *allencounters {
 		var d = model.IsInRangeOf(givenrange, encounter.Longitude, encounter.Latitude, userLongitude, userLatitude)
 		if d {
 			encountersInRange = append(encountersInRange, encounter)
@@ -103,7 +104,7 @@ func (service *EncounterService) FindAllInRangeOf(givenrange float64, userLongit
 	return encountersInRange, nil
 }
 
-func (service *EncounterService) FindAll() ([]model.Encounter, error) {
+func (service *EncounterService) FindAll() (*[]model.Encounter, error) {
 	allencounters, err := service.EncounterRepo.FindAll()
 	if err != nil {
 		return nil, fmt.Errorf(fmt.Sprintf("encounters not found"))
@@ -113,26 +114,22 @@ func (service *EncounterService) FindAll() ([]model.Encounter, error) {
 }
 
 func (service *EncounterService) FindHiddenLocationEncounterById(id int64) (*model.HiddenLocationEncounterDto, error) {
-	hiddenLocationEncounter, err := service.EncounterRepo.FindHiddenLocationEncounterById(id)
-	encounter, err := service.EncounterRepo.FindEncounterById(hiddenLocationEncounter.EncounterId)
+	hiddenLocationEncounter, _ := service.EncounterRepo.FindHiddenLocationEncounterById(id)
 
-	if err != nil {
-		return nil, fmt.Errorf(fmt.Sprintf("menu item with id %s not found", id))
-	}
 	fmt.Printf("%+v\n", hiddenLocationEncounter)
 	hiddenLocationEncounterDto := model.HiddenLocationEncounterDto{
 		PictureLongitude: hiddenLocationEncounter.PictureLongitude,
 		PictureLatitude:  hiddenLocationEncounter.PictureLatitude,
-		Id:               encounter.Id,
-		Title:            encounter.Title,
-		Description:      encounter.Description,
-		Picture:          encounter.Picture,
-		Longitude:        encounter.Longitude,
-		Latitude:         encounter.Latitude,
-		Radius:           encounter.Radius,
-		XpReward:         encounter.XpReward,
-		Status:           encounter.Status,
-		Type:             encounter.Type,
+		Id:               hiddenLocationEncounter.Encounter.Id,
+		Title:            hiddenLocationEncounter.Encounter.Title,
+		Description:      hiddenLocationEncounter.Encounter.Description,
+		Picture:          hiddenLocationEncounter.Encounter.Picture,
+		Longitude:        hiddenLocationEncounter.Encounter.Longitude,
+		Latitude:         hiddenLocationEncounter.PictureLatitude,
+		Radius:           hiddenLocationEncounter.Encounter.Radius,
+		XpReward:         hiddenLocationEncounter.Encounter.XpReward,
+		Status:           hiddenLocationEncounter.Encounter.Status,
+		Type:             hiddenLocationEncounter.Encounter.Type,
 	}
 	return &hiddenLocationEncounterDto, nil
 }
@@ -145,6 +142,7 @@ func (service *EncounterService) IsUserInCompletitionRange(id int64, userLongitu
 	return isUserInCompletitionRange
 }
 
+/*
 func (service *EncounterService) FindAllDoneByUser(id int64) ([]model.Encounter, error) {
 	instances, err := service.EncounterInstanceRepo.FindInstancesByUserId(id)
 	if err != nil {

@@ -42,24 +42,7 @@ func startEncounterServer(handler *handler.EncounterHandler, touristProgressHand
 	}
 */
 func main() {
-	/*database := initDB()
-	if database == nil {
-		print("FAILED TO CONNECT TO DB")
-		return
-	}
-	encounterRepo := &repo.EncounterRepository{DatabaseConnection: database}
-	encounterInstanceRepo := &repo.EncounterInstanceRepository{DatabaseConnection: database}
-	touristProgressRepo := &repo.TouristProgressRepository{DatabaseConnection: database}
 
-	encounterService := &service.EncounterService{EncounterRepo: encounterRepo, EncounterInstanceRepo: encounterInstanceRepo,
-		TouristProgressRepo: touristProgressRepo}
-	encounterInstanceService := &service.EncounterInstanceService{EncounterInstanceRepo: encounterInstanceRepo}
-	touristProgressService := &service.TouristProgressService{TouristProgressRepo: touristProgressRepo}
-
-	encounterHandler := &handler.EncounterHandler{EncounterService: encounterService}
-	touristProgressHandler := &handler.TouristProgressHandler{TouristProgressService: touristProgressService}
-	encounterInstanceHandler := &handler.EncounterInstanceHandler{EncounterInstanceService: encounterInstanceService}
-	*/
 	port := os.Getenv("PORT")
 	if len(port) == 0 {
 		port = "81"
@@ -91,6 +74,10 @@ func main() {
 	router.HandleFunc("/encounters/misc", encounterHandler.CreateMiscEncounter).Methods("POST")
 	router.HandleFunc("/encounters/social", encounterHandler.CreateSocialEncounter).Methods("POST")
 	router.HandleFunc("/encounters/hidden", encounterHandler.CreateHiddenLocationEncounter).Methods("POST")
+	router.HandleFunc("/encounters/isInRange/{id}/{long}/{lat}", encounterHandler.IsUserInCompletitionRange).Methods("GET")
+	router.HandleFunc("/encounters/{range}/{long}/{lat}", encounterHandler.FindAllInRangeOf).Methods("GET")
+	router.HandleFunc("/encounters", encounterHandler.FindAll).Methods("GET")
+	router.HandleFunc("/encounters/hidden/{id}", encounterHandler.FindHiddenLocationEncounterById).Methods("GET")
 
 	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))
 

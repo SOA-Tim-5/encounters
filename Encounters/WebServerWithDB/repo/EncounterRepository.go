@@ -5,6 +5,8 @@ import (
 	"database-example/model"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
+
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -64,90 +66,123 @@ func (repo *EncounterRepository) CreateSocialEncounter(socialEncounter *model.So
 }
 
 /*
-	func (repo *EncounterRepository) UpdateEncounter(encounter *model.Encounter) error {
-		dbResult := repo.DatabaseConnection.Save(encounter)
-		if dbResult.Error != nil {
-			return dbResult.Error
-		}
-		println("Rows affected: ", dbResult.RowsAffected)
-		return nil
-	}
+func (repo *EncounterRepository) UpdateEncounter(encounter *model.Encounter) error {
+
+}
+*/
 
 func (repo *EncounterRepository) GetEncounter(encounterId int64) (*model.Encounter, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	encountersCollection := repo.getCollection()
+	encountersCollection := repo.getEncounterCollection()
 
 	var encounter model.Encounter
-	err := encountersCollection.FindOne(ctx, bson.M{"_id": encounterId}).Decode(&encounter)
+	err := encountersCollection.FindOne(ctx, bson.M{"id": encounterId}).Decode(&encounter)
 	if err != nil {
-		repo.logger.Println(err)
+		repo.store.logger.Println(err)
 		return nil, err
 	}
 	return &encounter, nil
 }
 
-func (repo *EncounterRepository) GetHiddenLocationEncounter(encounterId int64) *model.HiddenLocationEncounter {
-	var encounter *model.HiddenLocationEncounter
-	dbResult := repo.DatabaseConnection.Preload("Encounter").Where("encounter_id = ?", encounterId).First(&encounter)
-	if dbResult.Error != nil {
-		return nil
+func (repo *EncounterRepository) GetHiddenLocationEncounter(encounterId int64) (*model.HiddenLocationEncounter, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	encountersCollection := repo.getEncounterCollection()
+
+	var encounter model.HiddenLocationEncounter
+	err := encountersCollection.FindOne(ctx, bson.M{"_id": encounterId}).Decode(&encounter)
+	if err != nil {
+		repo.store.logger.Println(err)
+		return nil, err
 	}
-	println("Found hidden location encounter")
-	return encounter
+	return &encounter, nil
 }
 
-func (repo *EncounterRepository) GetSocialEncounter(encounterId int64) *model.SocialEncounter {
-	var encounter *model.SocialEncounter
-	dbResult := repo.DatabaseConnection.Preload("Encounter").Where("encounter_id = ?", encounterId).First(&encounter)
-	if dbResult.Error != nil {
-		return nil
+func (repo *EncounterRepository) GetSocialEncounter(encounterId int64) (*model.SocialEncounter, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	encountersCollection := repo.getEncounterCollection()
+
+	var encounter model.SocialEncounter
+	err := encountersCollection.FindOne(ctx, bson.M{"_id": encounterId}).Decode(&encounter)
+	if err != nil {
+		repo.store.logger.Println(err)
+		return nil, err
 	}
-	println("Found social encounter")
-	return encounter
+	return &encounter, nil
+}
+
+func (repo *EncounterRepository) FindActiveEncounters() (*[]model.Encounter, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	encountersCollection := repo.getEncounterCollection()
+
+	var encounters []model.Encounter
+	patientsCursor, err := encountersCollection.Find(ctx, bson.M{"status": 0})
+	if err != nil {
+		repo.store.logger.Println(err)
+		return nil, err
+	}
+	if err = patientsCursor.All(ctx, &encounters); err != nil {
+		repo.store.logger.Println(err)
+		return nil, err
+	}
+	return &encounters, nil
+}
+
+func (repo *EncounterRepository) FindAll() (*[]model.Encounter, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	encountersCollection := repo.getEncounterCollection()
+
+	var encounters []model.Encounter
+	patientsCursor, err := encountersCollection.Find(ctx, bson.M{})
+	if err != nil {
+		repo.store.logger.Println(err)
+		return nil, err
+	}
+	if err = patientsCursor.All(ctx, &encounters); err != nil {
+		repo.store.logger.Println(err)
+		return nil, err
+	}
+	return &encounters, nil
+}
+
+func (repo *EncounterRepository) FindHiddenLocationEncounterById(id int64) (*model.HiddenLocationEncounter, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	encountersCollection := repo.getEncounterCollection()
+
+	var encounter model.HiddenLocationEncounter
+	err := encountersCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&encounter)
+	if err != nil {
+		repo.store.logger.Println(err)
+	}
+	return &encounter, nil
+}
+
+func (repo *EncounterRepository) FindEncounterById(id int64) (*model.Encounter, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	encountersCollection := repo.getEncounterCollection()
+
+	var encounter model.Encounter
+	err := encountersCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&encounter)
+	if err != nil {
+		repo.store.logger.Println(err)
+	}
+	return &encounter, nil
 }
 
 /*
-func (repo *EncounterRepository) FindActiveEncounters() ([]model.Encounter, error) {
-	var activeEncounters []model.Encounter
-	dbResult := repo.DatabaseConnection.Find(&activeEncounters, "status = 0")
-	if dbResult.Error != nil {
-		return nil, dbResult.Error
-	}
-
-	return activeEncounters, nil
-}
-
-func (repo *EncounterRepository) FindAll() ([]model.Encounter, error) {
-	var encounters []model.Encounter
-	dbResult := repo.DatabaseConnection.Find(&encounters)
-	if dbResult.Error != nil {
-		return nil, dbResult.Error
-	}
-
-	return encounters, nil
-}
-
-func (repo *EncounterRepository) FindHiddenLocationEncounterById(id int64) (model.HiddenLocationEncounter, error) {
-	hiddenLocationEncounter := model.HiddenLocationEncounter{}
-	dbResult := repo.DatabaseConnection.First(&hiddenLocationEncounter, "encounter_id = ?", id)
-	if dbResult != nil {
-		return hiddenLocationEncounter, dbResult.Error
-	}
-	return hiddenLocationEncounter, nil
-}
-
-func (repo *EncounterRepository) FindEncounterById(id int64) (model.Encounter, error) {
-	var encounter model.Encounter
-	dbResult := repo.DatabaseConnection.First(&encounter, "id=?", id)
-	if dbResult != nil {
-		return encounter, dbResult.Error
-	}
-
-	return encounter, nil
-}
-
 func (repo *EncounterRepository) HasUserActivatedOrCompletedEncounter(encounterId int64, userId int64) bool {
 	var instance *model.EncounterInstance
 	dbResult := repo.DatabaseConnection.Where("encounter_id = ? and user_id = ?", encounterId, userId).First(&instance)

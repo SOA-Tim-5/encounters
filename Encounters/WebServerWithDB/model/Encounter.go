@@ -24,6 +24,7 @@ const (
 )
 
 type Encounter struct {
+	Id          int64           `bson:"id,omitempty" json:"id"`
 	Title       string          `bson:"title,omitempty" json:"title"`
 	Description string          `bson:"description,omitempty" json:"description"`
 	Picture     string          `bson:"picture,omitempty" json:"picture"`

@@ -8,7 +8,7 @@ import (
 )
 
 type HiddenLocationEncounter struct {
-	Id               int64     `bson:"_id,omitempty" json:"id"`
+	EncounterId      int64     `bson:"_id,omitempty" json:"encounterId"`
 	Encounter        Encounter `bson:"encounter,omitempty" json:"encounter"`
 	PictureLongitude float64   `bson:"picturelongitude,omitempty" json:"picturelongitude"`
 	PictureLatitude  float64   `bson:"picturelatitude,omitempty" json:"picturelatitude"`
