@@ -3,91 +3,64 @@ package repo
 import (
 	"context"
 	"database-example/model"
-	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type EncounterRepository struct {
-	cli    *mongo.Client
-	logger *log.Logger
+	store *Repository
 }
 
-func New(ctx context.Context, logger *log.Logger) (*EncounterRepository, error) {
-	//dburi := os.Getenv("MONGO_DB_URI")
-	dburi := "mongodb://root:pass@mongo:27017"
-
-	client, err := mongo.NewClient(options.Client().ApplyURI(dburi))
-	if err != nil {
-		return nil, err
-	}
-
-	err = client.Connect(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &EncounterRepository{
-		cli:    client,
-		logger: logger,
-	}, nil
+func NewEncounterRepository(r *Repository) *EncounterRepository {
+	return &EncounterRepository{r}
 }
 
-func (pr *EncounterRepository) Disconnect(ctx context.Context) error {
-	err := pr.cli.Disconnect(ctx)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (repo *EncounterRepository) getCollection() *mongo.Collection {
-	encounterDatabase := repo.cli.Database("mongoDemo")
-	encountersCollection := encounterDatabase.Collection("encounters")
+func (repo *EncounterRepository) getEncounterCollection() *mongo.Collection {
+	db := repo.store.cli.Database("mongoDemo")
+	encountersCollection := db.Collection("encounters")
 	return encountersCollection
 }
 
 func (repo *EncounterRepository) CreateMiscEncounter(miscEncounter *model.MiscEncounter) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	encountersCollection := repo.getCollection()
+	encountersCollection := repo.getEncounterCollection()
 
 	result, err := encountersCollection.InsertOne(ctx, &miscEncounter)
 	if err != nil {
-		repo.logger.Println(err)
+		repo.store.logger.Println(err)
 		return err
 	}
-	repo.logger.Printf("Documents ID: %v\n", result.InsertedID)
+	repo.store.logger.Printf("Documents ID: %v\n", result.InsertedID)
 	return nil
 }
 
 func (repo *EncounterRepository) CreateHiddenLocationEncounter(hiddenLocationEncounter *model.HiddenLocationEncounter) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	encountersCollection := repo.getCollection()
+	encountersCollection := repo.getEncounterCollection()
 
 	result, err := encountersCollection.InsertOne(ctx, &hiddenLocationEncounter)
 	if err != nil {
-		repo.logger.Println(err)
+		repo.store.logger.Println(err)
 		return err
 	}
-	repo.logger.Printf("Documents ID: %v\n", result.InsertedID)
+	repo.store.logger.Printf("Documents ID: %v\n", result.InsertedID)
 	return nil
 }
 
 func (repo *EncounterRepository) CreateSocialEncounter(socialEncounter *model.SocialEncounter) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	encountersCollection := repo.getCollection()
+	encountersCollection := repo.getEncounterCollection()
 
 	result, err := encountersCollection.InsertOne(ctx, &socialEncounter)
 	if err != nil {
-		repo.logger.Println(err)
+		repo.store.logger.Println(err)
 		return err
 	}
-	repo.logger.Printf("Documents ID: %v\n", result.InsertedID)
+	repo.store.logger.Printf("Documents ID: %v\n", result.InsertedID)
 	return nil
 }
 

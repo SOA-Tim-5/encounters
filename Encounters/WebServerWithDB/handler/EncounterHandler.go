@@ -4,14 +4,27 @@ import (
 	"database-example/model"
 	"database-example/service"
 	"encoding/json"
+	"log"
 	"net/http"
-	"strconv"
-
-	"github.com/gorilla/mux"
 )
 
 type EncounterHandler struct {
 	EncounterService *service.EncounterService
+	logger           *log.Logger
+}
+
+func NewEncounterHandler(encounterService *service.EncounterService, log *log.Logger) *EncounterHandler {
+	return &EncounterHandler{encounterService, log}
+}
+
+func (p *EncounterHandler) MiddlewareContentTypeSet(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, h *http.Request) {
+		p.logger.Println("Method [", h.Method, "] - Hit path :", h.URL.Path)
+
+		rw.Header().Add("Content-Type", "application/json")
+
+		next.ServeHTTP(rw, h)
+	})
 }
 
 func (handler *EncounterHandler) CreateMiscEncounter(writer http.ResponseWriter, req *http.Request) {
@@ -90,6 +103,7 @@ func (handler *EncounterHandler) CreateHiddenLocationEncounter(writer http.Respo
 	writer.Header().Set("Content-Type", "application/json")
 }
 
+/*
 func (handler *EncounterHandler) ActivateEncounter(writer http.ResponseWriter, req *http.Request) {
 	var touristPosition model.TouristPosition
 	err := json.NewDecoder(req.Body).Decode(&touristPosition)
@@ -268,3 +282,4 @@ func (handler *EncounterHandler) CompleteSocialEncounter(writer http.ResponseWri
 	writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(touristProgress)
 }
+*/

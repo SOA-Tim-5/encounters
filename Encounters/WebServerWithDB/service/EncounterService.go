@@ -1,26 +1,16 @@
 package service
 
 import (
-	"Rest/data"
 	"database-example/model"
-	"fmt"
-	"log"
-	"time"
+	"database-example/repo"
 )
 
-type KeyEncounter struct{}
-type KeyEncounterInstance struct{}
-type KeyTouristProgress struct{}
-
 type EncounterService struct {
-	logger                *log.Logger
-	EncounterRepo         *data.EncounterRepository
-	EncounterInstanceRepo *data.EncounterInstanceRepository
-	TouristProgressRepo   *data.TouristProgressRepository
+	EncounterRepo *repo.EncounterRepository
 }
 
-func NewEncounterService(l *log.Logger, re *data.EncounterRepository,ri *data.EncounterInstanceRepository, rtp *data.TouristProgressRepository) *EncounterService {
-	return &EncounterService{l, re,ri rtp}
+func NewEncounterService(r *repo.EncounterRepository) *EncounterService {
+	return &EncounterService{r}
 }
 
 func (service *EncounterService) CreateMiscEncounter(miscEncounter *model.MiscEncounter) error {
@@ -50,6 +40,7 @@ func (service *EncounterService) CreateSocialEncounter(socialEncounter *model.So
 	return nil
 }
 
+/*
 func (service *EncounterService) ActivateEncounter(encounterId int64, position *model.TouristPosition) *model.Encounter {
 	var encounter *model.Encounter = service.EncounterRepo.GetEncounter(encounterId)
 	fmt.Println("ff %d", position.TouristId)
@@ -253,3 +244,4 @@ func (service *EncounterService) CompleteAllInRange(encounterId int64) error {
 	}
 	return nil
 }
+*/
