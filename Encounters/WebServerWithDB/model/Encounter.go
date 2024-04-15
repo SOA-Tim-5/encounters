@@ -4,11 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"math"
-	"time"
-
-	"gorm.io/gorm"
-
-	"github.com/google/uuid"
 )
 
 type EncounterStatus int
@@ -29,7 +24,6 @@ const (
 )
 
 type Encounter struct {
-	Id          int64           `bson:"_id,omitempty" json:"id"`
 	Title       string          `bson:"title,omitempty" json:"title"`
 	Description string          `bson:"description,omitempty" json:"description"`
 	Picture     string          `bson:"picture,omitempty" json:"picture"`
@@ -39,13 +33,6 @@ type Encounter struct {
 	XpReward    int             `bson:"xpreward,omitempty" json:"xpreawrd"`
 	Status      EncounterStatus `bson:"status,omitempty" json:"status"`
 	Type        EncounterType   `bson:"type,omitempty" json:"type"`
-}
-
-func (encounter *Encounter) BeforeCreate(scope *gorm.DB) error {
-	currentTimestamp := time.Now().UnixNano() / int64(time.Microsecond)
-	uniqueID := uuid.New().ID()
-	encounter.Id = currentTimestamp + int64(uniqueID)
-	return nil
 }
 
 func IsInRangeOf(givenrange float64, longitude float64, latitude float64, userLongitude float64, userLatitude float64) bool {
