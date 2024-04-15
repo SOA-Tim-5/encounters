@@ -3,10 +3,10 @@ package repo
 import (
 	"context"
 	"database-example/model"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -77,11 +77,23 @@ func (repo *EncounterRepository) GetEncounter(encounterId int64) (*model.Encount
 
 	encountersCollection := repo.getEncounterCollection()
 
-	var encounter model.Encounter
-	err := encountersCollection.FindOne(ctx, bson.M{"id": encounterId}).Decode(&encounter)
+	var encounterResponse model.EncounterResponse
+	err := encountersCollection.FindOne(ctx, bson.M{"_id": encounterId}).Decode(&encounterResponse)
 	if err != nil {
 		repo.store.logger.Println(err)
 		return nil, err
+	}
+	encounter := model.Encounter{
+		Id:          encounterResponse.ID,
+		Title:       encounterResponse.Encounter.Title,
+		Description: encounterResponse.Encounter.Description,
+		Picture:     encounterResponse.Encounter.Picture,
+		Longitude:   encounterResponse.Encounter.Longitude,
+		Latitude:    encounterResponse.Encounter.Latitude,
+		Radius:      encounterResponse.Encounter.Radius,
+		XpReward:    encounterResponse.Encounter.XpReward,
+		Status:      encounterResponse.Encounter.Status,
+		Type:        encounterResponse.Encounter.Type,
 	}
 	return &encounter, nil
 }
@@ -123,14 +135,30 @@ func (repo *EncounterRepository) FindActiveEncounters() (*[]model.Encounter, err
 	encountersCollection := repo.getEncounterCollection()
 
 	var encounters []model.Encounter
-	patientsCursor, err := encountersCollection.Find(ctx, bson.M{"status": 0})
+	cursor, err := encountersCollection.Find(ctx, bson.M{"status": 0})
 	if err != nil {
 		repo.store.logger.Println(err)
 		return nil, err
 	}
-	if err = patientsCursor.All(ctx, &encounters); err != nil {
-		repo.store.logger.Println(err)
-		return nil, err
+	for cursor.Next(context.Background()) {
+		var encounterResponse model.EncounterResponse
+		if err := cursor.Decode(&encounterResponse); err != nil {
+			log.Fatal(err)
+		}
+		encounter := model.Encounter{
+			Id:          encounterResponse.ID,
+			Title:       encounterResponse.Encounter.Title,
+			Description: encounterResponse.Encounter.Description,
+			Picture:     encounterResponse.Encounter.Picture,
+			Longitude:   encounterResponse.Encounter.Longitude,
+			Latitude:    encounterResponse.Encounter.Latitude,
+			Radius:      encounterResponse.Encounter.Radius,
+			XpReward:    encounterResponse.Encounter.XpReward,
+			Status:      encounterResponse.Encounter.Status,
+			Type:        encounterResponse.Encounter.Type,
+		}
+		encounters = append(encounters, encounter)
+
 	}
 	return &encounters, nil
 }
@@ -142,15 +170,32 @@ func (repo *EncounterRepository) FindAll() (*[]model.Encounter, error) {
 	encountersCollection := repo.getEncounterCollection()
 
 	var encounters []model.Encounter
-	patientsCursor, err := encountersCollection.Find(ctx, bson.M{})
+	cursor, err := encountersCollection.Find(ctx, bson.M{})
 	if err != nil {
 		repo.store.logger.Println(err)
 		return nil, err
 	}
-	if err = patientsCursor.All(ctx, &encounters); err != nil {
-		repo.store.logger.Println(err)
-		return nil, err
+	for cursor.Next(context.Background()) {
+		var encounterResponse model.EncounterResponse
+		if err := cursor.Decode(&encounterResponse); err != nil {
+			log.Fatal(err)
+		}
+		encounter := model.Encounter{
+			Id:          encounterResponse.ID,
+			Title:       encounterResponse.Encounter.Title,
+			Description: encounterResponse.Encounter.Description,
+			Picture:     encounterResponse.Encounter.Picture,
+			Longitude:   encounterResponse.Encounter.Longitude,
+			Latitude:    encounterResponse.Encounter.Latitude,
+			Radius:      encounterResponse.Encounter.Radius,
+			XpReward:    encounterResponse.Encounter.XpReward,
+			Status:      encounterResponse.Encounter.Status,
+			Type:        encounterResponse.Encounter.Type,
+		}
+		encounters = append(encounters, encounter)
+
 	}
+
 	return &encounters, nil
 }
 
