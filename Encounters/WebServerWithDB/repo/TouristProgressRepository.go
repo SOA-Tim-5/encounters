@@ -37,13 +37,23 @@ func (repo *TouristProgressRepository) FindTouristProgressByTouristId(id int64) 
 	return &progress, nil
 }
 
-/*
 func (repo *TouristProgressRepository) UpdateTouristProgress(touristProgress *model.TouristProgress) error {
-	dbResult := repo.DatabaseConnection.Save(touristProgress)
-	if dbResult.Error != nil {
-		return dbResult.Error
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	collection := repo.getTouristProgressCollection()
+
+	filter := bson.M{"_id": touristProgress.Id}
+	update := bson.M{"$set": bson.M{
+		"xp":    touristProgress.Xp,
+		"level": touristProgress.Level,
+	}}
+	result, err := collection.UpdateOne(ctx, filter, update)
+	repo.store.logger.Printf("Documents matched: %v\n", result.MatchedCount)
+	repo.store.logger.Printf("Documents updated: %v\n", result.ModifiedCount)
+
+	if err != nil {
+		repo.store.logger.Println(err)
+		return err
 	}
-	println("Rows affected: ", dbResult.RowsAffected)
 	return nil
 }
-*/

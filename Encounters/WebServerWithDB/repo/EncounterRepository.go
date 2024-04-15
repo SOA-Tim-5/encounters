@@ -23,6 +23,11 @@ func (repo *EncounterRepository) getEncounterCollection() *mongo.Collection {
 	encountersCollection := db.Collection("encounters")
 	return encountersCollection
 }
+func (repo *EncounterRepository) getEncounterInstanceCollection() *mongo.Collection {
+	db := repo.store.cli.Database("mongoDemo")
+	encountersCollection := db.Collection("instances")
+	return encountersCollection
+}
 
 func (repo *EncounterRepository) CreateMiscEncounter(miscEncounter *model.MiscEncounter) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -64,12 +69,6 @@ func (repo *EncounterRepository) CreateSocialEncounter(socialEncounter *model.So
 	repo.store.logger.Printf("Documents ID: %v\n", result.InsertedID)
 	return nil
 }
-
-/*
-func (repo *EncounterRepository) UpdateEncounter(encounter *model.Encounter) error {
-
-}
-*/
 
 func (repo *EncounterRepository) GetEncounter(encounterId int64) (*model.Encounter, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -240,14 +239,17 @@ func (repo *EncounterRepository) FindEncounterById(id int64) (*model.Encounter, 
 	return &encounter, nil
 }
 
-/*
 func (repo *EncounterRepository) HasUserActivatedOrCompletedEncounter(encounterId int64, userId int64) bool {
-	var instance *model.EncounterInstance
-	dbResult := repo.DatabaseConnection.Where("encounter_id = ? and user_id = ?", encounterId, userId).First(&instance)
-	if dbResult.Error != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	intsancesCollection := repo.getEncounterInstanceCollection()
+
+	var instance model.EncounterInstance
+	err := intsancesCollection.FindOne(ctx, bson.M{"encounterid": encounterId, "userid": userId}).Decode(&instance)
+	if err != nil {
 		println("Can't be activated")
 		return false
 	}
 	return true
 }
-*/

@@ -110,62 +110,61 @@ func (handler *EncounterHandler) CreateHiddenLocationEncounter(writer http.Respo
 	writer.Header().Set("Content-Type", "application/json")
 }
 
-/*
-	func (handler *EncounterHandler) ActivateEncounter(writer http.ResponseWriter, req *http.Request) {
-		var touristPosition model.TouristPosition
-		err := json.NewDecoder(req.Body).Decode(&touristPosition)
-		if err != nil {
-			println("Error while parsing json")
-			writer.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		var id int64
-		vars := mux.Vars(req)
-		ids, ok := vars["id"]
-		if !ok {
-			println("id is missing in parameters")
-		}
-		id, err = strconv.ParseInt(ids, 10, 64)
-		encounter := handler.EncounterService.ActivateEncounter(id, &touristPosition)
-		if encounter == nil || err != nil {
-			println("Error while activating")
-			writer.WriteHeader(http.StatusExpectationFailed)
-			return
-		}
-		writer.WriteHeader(http.StatusCreated)
-		writer.Header().Set("Content-Type", "application/json")
+func (handler *EncounterHandler) ActivateEncounter(writer http.ResponseWriter, req *http.Request) {
+	var touristPosition model.TouristPosition
+	err := json.NewDecoder(req.Body).Decode(&touristPosition)
+	if err != nil {
+		println("Error while parsing json")
+		writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	var id int64
+	vars := mux.Vars(req)
+	ids, ok := vars["id"]
+	if !ok {
+		println("id is missing in parameters")
+	}
+	id, err = strconv.ParseInt(ids, 10, 64)
+	encounter := handler.EncounterService.ActivateEncounter(id, &touristPosition)
+	if encounter == nil || err != nil {
+		println("Error while activating")
+		writer.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
+	writer.WriteHeader(http.StatusCreated)
+	writer.Header().Set("Content-Type", "application/json")
 
-		err = json.NewEncoder(writer).Encode(encounter)
-		if err != nil {
-			writer.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+	err = json.NewEncoder(writer).Encode(encounter)
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (handler *EncounterHandler) CompleteHiddenLocationEncounter(writer http.ResponseWriter, req *http.Request) {
+	var touristPosition model.TouristPosition
+	err := json.NewDecoder(req.Body).Decode(&touristPosition)
+	if err != nil {
+		println("Error while parsing json")
+		writer.WriteHeader(http.StatusBadRequest)
 	}
 
-	func (handler *EncounterHandler) CompleteHiddenLocationEncounter(writer http.ResponseWriter, req *http.Request) {
-		var touristPosition model.TouristPosition
-		err := json.NewDecoder(req.Body).Decode(&touristPosition)
-		if err != nil {
-			println("Error while parsing json")
-			writer.WriteHeader(http.StatusBadRequest)
-		}
-
-		vars := mux.Vars(req)
-		id, ok := vars["id"]
-		if !ok {
-			println("id is missing in parameters")
-		}
-		encounterId, err := strconv.ParseFloat(id, 64)
-		err = handler.EncounterService.CompleteHiddenLocationEncounter(int64(encounterId), &touristPosition)
-		if err != nil {
-			println("Error while completing hidden location encounter")
-			writer.WriteHeader(http.StatusExpectationFailed)
-			return
-		}
-		writer.WriteHeader(http.StatusCreated)
-		writer.Header().Set("Content-Type", "application/json")
+	vars := mux.Vars(req)
+	id, ok := vars["id"]
+	if !ok {
+		println("id is missing in parameters")
 	}
-*/
+	encounterId, err := strconv.ParseFloat(id, 64)
+	err = handler.EncounterService.CompleteHiddenLocationEncounter(int64(encounterId), &touristPosition)
+	if err != nil {
+		println("Error while completing hidden location encounter")
+		writer.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
+	writer.WriteHeader(http.StatusCreated)
+	writer.Header().Set("Content-Type", "application/json")
+}
+
 func (handler *EncounterHandler) FindAllInRangeOf(writer http.ResponseWriter, req *http.Request) {
 	println("in range")
 	strrange := mux.Vars(req)["range"]
@@ -252,7 +251,6 @@ func (handler *EncounterHandler) FindAllDoneByUser(writer http.ResponseWriter, r
 	}
 }
 
-/*
 func (handler *EncounterHandler) CompleteMiscEncounter(writer http.ResponseWriter, req *http.Request) {
 	struserid := mux.Vars(req)["userid"]
 	userid, err := strconv.ParseInt(struserid, 10, 64)
@@ -290,4 +288,3 @@ func (handler *EncounterHandler) CompleteSocialEncounter(writer http.ResponseWri
 	writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(touristProgress)
 }
-*/
