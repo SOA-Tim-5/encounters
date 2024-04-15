@@ -5,10 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
-	"gorm.io/gorm"
-
-	"github.com/google/uuid"
 )
 
 type EncounterInstanceStatus int
@@ -19,11 +15,11 @@ const (
 )
 
 type EncounterInstance struct {
-	Id             int64
-	EncounterId    int64
-	UserId         int64
-	Status         EncounterInstanceStatus
-	CompletionTime time.Time
+	Id             int64                   `bson:"_id,omitempty" json:"id"`
+	EncounterId    int64                   `bson:"encounterid,omitempty" json:"encounterid"`
+	UserId         int64                   `bson:"userid,omitempty" json:"userid"`
+	Status         EncounterInstanceStatus `bson:"encounterinstancestatus,omitempty" json:"encounterinstancestatus"`
+	CompletionTime time.Time               `bson:"completitiontime,omitempty" json:"completitiontime"`
 }
 
 func CompleteInstance(instance *EncounterInstance, userId int64) *EncounterInstance {
@@ -54,14 +50,8 @@ type EncounterInstanceDto struct {
 	CompletionTime time.Time
 }
 
-func (encounterInstance *EncounterInstance) BeforeCreate(scope *gorm.DB) error {
-	currentTimestamp := time.Now().UnixNano() / int64(time.Microsecond)
-	uniqueID := uuid.New().ID()
-	encounterInstance.Id = currentTimestamp + int64(uniqueID)
-	return nil
-}
-func  Complete (encounterInstance *EncounterInstance) (*EncounterInstance){
-	encounterInstance.Status= 1
-	encounterInstance.CompletionTime=time.Now()
+func Complete(encounterInstance *EncounterInstance) *EncounterInstance {
+	encounterInstance.Status = 1
+	encounterInstance.CompletionTime = time.Now()
 	return encounterInstance
 }

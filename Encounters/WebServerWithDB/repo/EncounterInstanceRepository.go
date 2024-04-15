@@ -2,34 +2,70 @@ package repo
 
 import (
 	"database-example/model"
+	"time"
 
-	"gorm.io/gorm"
+	"context"
+
+	"log"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type EncounterInstanceRepository struct {
-	DatabaseConnection *gorm.DB
+	store *Repository
 }
 
-func (repo *EncounterInstanceRepository) FindInstancesByUserId(id int64) ([]model.EncounterInstance, error) {
+func NewEncounterInstanceRepository(r *Repository) *EncounterInstanceRepository {
+	return &EncounterInstanceRepository{r}
+}
+
+func (repo *EncounterInstanceRepository) getEncounterInstanceCollection() *mongo.Collection {
+	db := repo.store.cli.Database("mongoDemo")
+	encountersCollection := db.Collection("instances")
+	return encountersCollection
+}
+
+func (repo *EncounterInstanceRepository) FindInstancesByUserId(id int64) (*[]model.EncounterInstance, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	instancesCollection := repo.getEncounterInstanceCollection()
+
 	var instances []model.EncounterInstance
-	dbResult := repo.DatabaseConnection.Find(&instances, "user_id=?", id)
-	if dbResult.Error != nil {
-		return nil, dbResult.Error
+	cursor, err := instancesCollection.Find(ctx, bson.M{"userid": id})
+	if err != nil {
+		repo.store.logger.Println(err)
+		return nil, err
+	}
+	for cursor.Next(context.Background()) {
+		var encounterInstance model.EncounterInstance
+		if err := cursor.Decode(&encounterInstance); err != nil {
+			log.Fatal(err)
+		}
+		instances = append(instances, encounterInstance)
+
 	}
 
-	return instances, nil
+	return &instances, nil
 }
 
-func (repo *EncounterInstanceRepository) GetEncounterInstance(encounterId int64, userId int64) *model.EncounterInstance {
-	var instance *model.EncounterInstance
-	dbResult := repo.DatabaseConnection.Where("encounter_id = ? and user_id = ?", encounterId, userId).First(&instance)
-	if dbResult.Error != nil {
-		return nil
+func (repo *EncounterInstanceRepository) GetEncounterInstance(encounterId int64, userId int64) (*model.EncounterInstance, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	intsancesCollection := repo.getEncounterInstanceCollection()
+
+	var instance model.EncounterInstance
+	err := intsancesCollection.FindOne(ctx, bson.M{"encounterid": encounterId, "userid": userId}).Decode(&instance)
+	if err != nil {
+		repo.store.logger.Println(err)
+		return nil, err
 	}
-	return instance
+	return &instance, nil
 }
 
-
+/*
 func (repo *EncounterInstanceRepository) CreateEncounterInstance(instance *model.EncounterInstance) error {
 	dbResult := repo.DatabaseConnection.Create(instance)
 	if dbResult.Error != nil {
@@ -65,3 +101,4 @@ func (repo *EncounterInstanceRepository) GetActiveInstances(encounterId int64) [
 	}
 	return instances
 }
+*/

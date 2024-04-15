@@ -7,11 +7,12 @@ import (
 )
 
 type EncounterService struct {
-	EncounterRepo *repo.EncounterRepository
+	EncounterRepo         *repo.EncounterRepository
+	EncounterInstanceRepo *repo.EncounterInstanceRepository
 }
 
-func NewEncounterService(r *repo.EncounterRepository) *EncounterService {
-	return &EncounterService{r}
+func NewEncounterService(re *repo.EncounterRepository, ri *repo.EncounterInstanceRepository) *EncounterService {
+	return &EncounterService{re, ri}
 }
 
 func (service *EncounterService) CreateMiscEncounter(miscEncounter *model.MiscEncounter) error {
@@ -142,20 +143,20 @@ func (service *EncounterService) IsUserInCompletitionRange(id int64, userLongitu
 	return isUserInCompletitionRange
 }
 
-/*
-func (service *EncounterService) FindAllDoneByUser(id int64) ([]model.Encounter, error) {
+func (service *EncounterService) FindAllDoneByUser(id int64) ([]*model.Encounter, error) {
 	instances, err := service.EncounterInstanceRepo.FindInstancesByUserId(id)
 	if err != nil {
 		return nil, fmt.Errorf(fmt.Sprintf("encounters not found"))
 	}
-	var encounters []model.Encounter
-	for _, instance := range instances {
+	var encounters []*model.Encounter
+	for _, instance := range *instances {
 		encounter, _ := service.EncounterRepo.FindEncounterById(instance.EncounterId)
 		encounters = append(encounters, encounter)
 	}
 	return encounters, nil
 }
 
+/*
 func (service *EncounterService) CompleteMiscEncounter(userid int64, encounterid int64) (*model.TouristProgressDto, error) {
 	foundedInstance := service.EncounterInstanceRepo.GetEncounterInstance(encounterid, userid)
 

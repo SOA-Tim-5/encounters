@@ -22,18 +22,10 @@ func startEncounterServer(handler *handler.EncounterHandler, touristProgressHand
 		encounterInstanceHandler *handler.EncounterInstanceHandler) {
 		router := mux.NewRouter().StrictSlash(true)
 
-		router.HandleFunc("/encounters/misc", handler.CreateMiscEncounter).Methods("POST")
-		router.HandleFunc("/encounters/social", handler.CreateSocialEncounter).Methods("POST")
-		router.HandleFunc("/encounters/hidden", handler.CreateHiddenLocationEncounter).Methods("POST")
+
 		router.HandleFunc("/encounters/activate/{id}", handler.ActivateEncounter).Methods("POST")
 		router.HandleFunc("/encounters/touristProgress/{id}", touristProgressHandler.FindTouristProgressByTouristId).Methods("GET")
 		router.HandleFunc("/encounters/complete/{id}", handler.CompleteHiddenLocationEncounter).Methods("POST")
-		router.HandleFunc("/encounters/{range}/{long}/{lat}", handler.FindAllInRangeOf).Methods("GET")
-		router.HandleFunc("/encounters", handler.FindAll).Methods("GET")
-		router.HandleFunc("/encounters/hidden/{id}", handler.FindHiddenLocationEncounterById).Methods("GET")
-		router.HandleFunc("/encounters/isInRange/{id}/{long}/{lat}", handler.IsUserInCompletitionRange).Methods("GET")
-		router.HandleFunc("/encounters/doneByUser/{id}", handler.FindAllDoneByUser).Methods("GET")
-		router.HandleFunc("/encounters/instance/{id}/{encounterId}/encounter", encounterInstanceHandler.FindEncounterInstance).Methods("GET")
 		router.HandleFunc("/encounters/complete/{userid}/{encounterId}/misc", handler.CompleteMiscEncounter).Methods("GET")
 		router.HandleFunc("/encounters/complete/{encounterId}/social", handler.CompleteSocialEncounter).Methods("POST")
 
@@ -64,10 +56,13 @@ func main() {
 	store.Ping()
 
 	encounterRepo := repo.NewEncounterRepository(store)
+	encounterInstanceRepo := repo.NewEncounterInstanceRepository(store)
 
-	encounterService := service.NewEncounterService(encounterRepo)
+	encounterService := service.NewEncounterService(encounterRepo, encounterInstanceRepo)
+	encounterInstanceService := service.NewEncounterInstanceService(encounterInstanceRepo)
 
 	encounterHandler := handler.NewEncounterHandler(encounterService, logger)
+	encounterInstanceHandler := handler.NewEncounterInstanceHandler(encounterInstanceService)
 
 	router := mux.NewRouter().StrictSlash(true)
 
@@ -78,6 +73,8 @@ func main() {
 	router.HandleFunc("/encounters/{range}/{long}/{lat}", encounterHandler.FindAllInRangeOf).Methods("GET")
 	router.HandleFunc("/encounters", encounterHandler.FindAll).Methods("GET")
 	router.HandleFunc("/encounters/hidden/{id}", encounterHandler.FindHiddenLocationEncounterById).Methods("GET")
+	router.HandleFunc("/encounters/doneByUser/{id}", encounterHandler.FindAllDoneByUser).Methods("GET")
+	router.HandleFunc("/encounters/instance/{id}/{encounterId}/encounter", encounterInstanceHandler.FindEncounterInstance).Methods("GET")
 
 	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))
 

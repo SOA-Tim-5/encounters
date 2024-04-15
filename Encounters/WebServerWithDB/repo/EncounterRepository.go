@@ -219,10 +219,23 @@ func (repo *EncounterRepository) FindEncounterById(id int64) (*model.Encounter, 
 
 	encountersCollection := repo.getEncounterCollection()
 
-	var encounter model.Encounter
-	err := encountersCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&encounter)
+	var encounterResponse model.EncounterResponse
+	err := encountersCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&encounterResponse)
 	if err != nil {
 		repo.store.logger.Println(err)
+		return nil, err
+	}
+	encounter := model.Encounter{
+		Id:          encounterResponse.ID,
+		Title:       encounterResponse.Encounter.Title,
+		Description: encounterResponse.Encounter.Description,
+		Picture:     encounterResponse.Encounter.Picture,
+		Longitude:   encounterResponse.Encounter.Longitude,
+		Latitude:    encounterResponse.Encounter.Latitude,
+		Radius:      encounterResponse.Encounter.Radius,
+		XpReward:    encounterResponse.Encounter.XpReward,
+		Status:      encounterResponse.Encounter.Status,
+		Type:        encounterResponse.Encounter.Type,
 	}
 	return &encounter, nil
 }

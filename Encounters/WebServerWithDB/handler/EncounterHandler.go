@@ -235,7 +235,6 @@ func (handler *EncounterHandler) IsUserInCompletitionRange(writer http.ResponseW
 	json.NewEncoder(writer).Encode(isUserInCompletitionRange)
 }
 
-/*
 func (handler *EncounterHandler) FindAllDoneByUser(writer http.ResponseWriter, req *http.Request) {
 	strid := mux.Vars(req)["id"]
 	id, err := strconv.ParseInt(strid, 10, 64)
@@ -253,6 +252,7 @@ func (handler *EncounterHandler) FindAllDoneByUser(writer http.ResponseWriter, r
 	}
 }
 
+/*
 func (handler *EncounterHandler) CompleteMiscEncounter(writer http.ResponseWriter, req *http.Request) {
 	struserid := mux.Vars(req)["userid"]
 	userid, err := strconv.ParseInt(struserid, 10, 64)
