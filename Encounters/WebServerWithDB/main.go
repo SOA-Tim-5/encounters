@@ -1,12 +1,14 @@
 package main
 
 import (
+	"Rest/data"
+	"context"
 	"database-example/handler"
 	"database-example/model"
-	"database-example/repo"
-	"database-example/service"
 	"log"
 	"net/http"
+	"os"
+	"time"
 
 	"gorm.io/driver/postgres"
 
@@ -56,7 +58,7 @@ func startEncounterServer(handler *handler.EncounterHandler, touristProgressHand
 }
 
 func main() {
-	database := initDB()
+	/*database := initDB()
 	if database == nil {
 		print("FAILED TO CONNECT TO DB")
 		return
@@ -73,6 +75,25 @@ func main() {
 	encounterHandler := &handler.EncounterHandler{EncounterService: encounterService}
 	touristProgressHandler := &handler.TouristProgressHandler{TouristProgressService: touristProgressService}
 	encounterInstanceHandler := &handler.EncounterInstanceHandler{EncounterInstanceService: encounterInstanceService}
+	*/
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = "81"
+	}
+
+	// Initialize context
+	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	//Initialize the logger we are going to use, with prefix and datetime for every log
+	logger := log.New(os.Stdout, "[encounter-api] ", log.LstdFlags)
+	storeLogger := log.New(os.Stdout, "[encounter-store] ", log.LstdFlags)
+
+	storeEncounter, err := data.New(timeoutContext, storeLogger)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	defer storeEncounter.Disconnect(timeoutContext)
 
 	startEncounterServer(encounterHandler, touristProgressHandler, encounterInstanceHandler)
 }

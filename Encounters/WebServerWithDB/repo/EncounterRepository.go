@@ -1,68 +1,119 @@
 package repo
 
 import (
+	"context"
 	"database-example/model"
+	"log"
+	"time"
 
-	"gorm.io/gorm"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type EncounterRepository struct {
-	DatabaseConnection *gorm.DB
+	cli    *mongo.Client
+	logger *log.Logger
 }
 
-func (repo *EncounterRepository) CreateEncounter(encounter *model.Encounter) error {
-	dbResult := repo.DatabaseConnection.Create(encounter)
-	if dbResult.Error != nil {
-		return dbResult.Error
+func New(ctx context.Context, logger *log.Logger) (*EncounterRepository, error) {
+	//dburi := os.Getenv("MONGO_DB_URI")
+	dburi := "mongodb://root:pass@mongo:27017"
+
+	client, err := mongo.NewClient(options.Client().ApplyURI(dburi))
+	if err != nil {
+		return nil, err
 	}
-	println("Rows affected: ", dbResult.RowsAffected)
+
+	err = client.Connect(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &EncounterRepository{
+		cli:    client,
+		logger: logger,
+	}, nil
+}
+
+func (pr *EncounterRepository) Disconnect(ctx context.Context) error {
+	err := pr.cli.Disconnect(ctx)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
+func (repo *EncounterRepository) getCollection() *mongo.Collection {
+	encounterDatabase := repo.cli.Database("mongoDemo")
+	encountersCollection := encounterDatabase.Collection("encounters")
+	return encountersCollection
+}
+
 func (repo *EncounterRepository) CreateMiscEncounter(miscEncounter *model.MiscEncounter) error {
-	dbResult := repo.DatabaseConnection.Create(miscEncounter)
-	if dbResult.Error != nil {
-		return dbResult.Error
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	encountersCollection := repo.getCollection()
+
+	result, err := encountersCollection.InsertOne(ctx, &miscEncounter)
+	if err != nil {
+		repo.logger.Println(err)
+		return err
 	}
-	println("Rows affected: ", dbResult.RowsAffected)
+	repo.logger.Printf("Documents ID: %v\n", result.InsertedID)
 	return nil
 }
 
 func (repo *EncounterRepository) CreateHiddenLocationEncounter(hiddenLocationEncounter *model.HiddenLocationEncounter) error {
-	dbResult := repo.DatabaseConnection.Create(hiddenLocationEncounter)
-	if dbResult.Error != nil {
-		return dbResult.Error
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	encountersCollection := repo.getCollection()
+
+	result, err := encountersCollection.InsertOne(ctx, &hiddenLocationEncounter)
+	if err != nil {
+		repo.logger.Println(err)
+		return err
 	}
-	println("Rows affected: ", dbResult.RowsAffected)
+	repo.logger.Printf("Documents ID: %v\n", result.InsertedID)
 	return nil
 }
 
 func (repo *EncounterRepository) CreateSocialEncounter(socialEncounter *model.SocialEncounter) error {
-	dbResult := repo.DatabaseConnection.Create(socialEncounter)
-	if dbResult.Error != nil {
-		return dbResult.Error
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	encountersCollection := repo.getCollection()
+
+	result, err := encountersCollection.InsertOne(ctx, &socialEncounter)
+	if err != nil {
+		repo.logger.Println(err)
+		return err
 	}
-	println("Rows affected: ", dbResult.RowsAffected)
+	repo.logger.Printf("Documents ID: %v\n", result.InsertedID)
 	return nil
 }
 
-func (repo *EncounterRepository) UpdateEncounter(encounter *model.Encounter) error {
-	dbResult := repo.DatabaseConnection.Save(encounter)
-	if dbResult.Error != nil {
-		return dbResult.Error
-	}
-	println("Rows affected: ", dbResult.RowsAffected)
-	return nil
-}
-
-func (repo *EncounterRepository) GetEncounter(encounterId int64) *model.Encounter {
-	var encounter *model.Encounter
-	dbResult := repo.DatabaseConnection.Where("Id = ?", encounterId).First(&encounter)
-	if dbResult.Error != nil {
+/*
+	func (repo *EncounterRepository) UpdateEncounter(encounter *model.Encounter) error {
+		dbResult := repo.DatabaseConnection.Save(encounter)
+		if dbResult.Error != nil {
+			return dbResult.Error
+		}
+		println("Rows affected: ", dbResult.RowsAffected)
 		return nil
 	}
-	println("Found encounter")
-	return encounter
+
+func (repo *EncounterRepository) GetEncounter(encounterId int64) (*model.Encounter, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	encountersCollection := repo.getCollection()
+
+	var encounter model.Encounter
+	err := encountersCollection.FindOne(ctx, bson.M{"_id": encounterId}).Decode(&encounter)
+	if err != nil {
+		repo.logger.Println(err)
+		return nil, err
+	}
+	return &encounter, nil
 }
 
 func (repo *EncounterRepository) GetHiddenLocationEncounter(encounterId int64) *model.HiddenLocationEncounter {
@@ -85,6 +136,7 @@ func (repo *EncounterRepository) GetSocialEncounter(encounterId int64) *model.So
 	return encounter
 }
 
+/*
 func (repo *EncounterRepository) FindActiveEncounters() ([]model.Encounter, error) {
 	var activeEncounters []model.Encounter
 	dbResult := repo.DatabaseConnection.Find(&activeEncounters, "status = 0")
@@ -133,3 +185,4 @@ func (repo *EncounterRepository) HasUserActivatedOrCompletedEncounter(encounterI
 	}
 	return true
 }
+*/

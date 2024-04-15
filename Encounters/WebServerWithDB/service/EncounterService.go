@@ -1,16 +1,26 @@
 package service
 
 import (
+	"Rest/data"
 	"database-example/model"
-	"database-example/repo"
 	"fmt"
+	"log"
 	"time"
 )
 
+type KeyEncounter struct{}
+type KeyEncounterInstance struct{}
+type KeyTouristProgress struct{}
+
 type EncounterService struct {
-	EncounterRepo         *repo.EncounterRepository
-	EncounterInstanceRepo *repo.EncounterInstanceRepository
-	TouristProgressRepo   *repo.TouristProgressRepository
+	logger                *log.Logger
+	EncounterRepo         *data.EncounterRepository
+	EncounterInstanceRepo *data.EncounterInstanceRepository
+	TouristProgressRepo   *data.TouristProgressRepository
+}
+
+func NewEncounterService(l *log.Logger, re *data.EncounterRepository,ri *data.EncounterInstanceRepository, rtp *data.TouristProgressRepository) *EncounterService {
+	return &EncounterService{l, re,ri rtp}
 }
 
 func (service *EncounterService) CreateMiscEncounter(miscEncounter *model.MiscEncounter) error {
