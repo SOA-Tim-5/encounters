@@ -1,34 +1,19 @@
 package model
 
-import (
-	"gorm.io/gorm"
-	"time"
-	"github.com/google/uuid"
-)
-
 type TouristProgress struct {
-	Id      int64
-	UserId  int64
-	Xp      int
-	Level   int
-
+	Id     int64 `bson:"_id,omitempty" json:"Id"`
+	UserId int64 `bson:"userid,omitempty" json:"Userid"`
+	Xp     int   `bson:"xp,omitempty" json:"Xp"`
+	Level  int   `bson:"level,omitempty" json:"Level"`
 }
-
-func (touristProgress *TouristProgress) BeforeCreate(scope *gorm.DB) error {
-	currentTimestamp := time.Now().UnixNano() / int64(time.Microsecond)
-    uniqueID := uuid.New().ID()
-    touristProgress.Id = currentTimestamp + int64(uniqueID)
-    return nil
-}
-
 
 type TouristProgressDto struct {
-	Xp      int
-	Level   int
+	Xp    int
+	Level int
 }
 
-func AddXp (touristProgress *TouristProgress, xp int) (*TouristProgress) {
-	touristProgress.Xp=touristProgress.Xp+xp
-	touristProgress.Level=touristProgress.Xp/100+1
+func AddXp(touristProgress *TouristProgress, xp int) *TouristProgress {
+	touristProgress.Xp = touristProgress.Xp + xp
+	touristProgress.Level = touristProgress.Xp/100 + 1
 	return touristProgress
 }
