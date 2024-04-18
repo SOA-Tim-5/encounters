@@ -1,10 +1,10 @@
 package model
 
 type TouristProgress struct {
-	Id     int64 `bson:"_id,omitempty" json:"id"`
-	UserId int64 `bson:"userid,omitempty" json:"userid"`
-	Xp     int   `bson:"xp,omitempty" json:"xp"`
-	Level  int   `bson:"level,omitempty" json:"level"`
+	Id     int64 `bson:"_id,omitempty" json:"Id"`
+	UserId int64 `bson:"userid,omitempty" json:"Userid"`
+	Xp     int   `bson:"xp,omitempty" json:"Xp"`
+	Level  int   `bson:"level,omitempty" json:"Level"`
 }
 
 type TouristProgressDto struct {

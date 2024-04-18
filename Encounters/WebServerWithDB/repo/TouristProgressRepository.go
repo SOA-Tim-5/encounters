@@ -57,3 +57,16 @@ func (repo *TouristProgressRepository) UpdateTouristProgress(touristProgress *mo
 	}
 	return nil
 }
+
+func (repo *TouristProgressRepository) Create(progress *model.TouristProgress) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	progressCollection := repo.getTouristProgressCollection()
+	result, err := progressCollection.InsertOne(ctx, &progress)
+	if err != nil {
+		repo.store.logger.Println(err)
+		return err
+	}
+	repo.store.logger.Printf("Documents ID: %v\n", result.InsertedID)
+	return nil
+}

@@ -6,9 +6,9 @@ import (
 )
 
 type MiscEncounter struct {
-	EncounterId   int64     `bson:"_id,omitempty" json:"encounterId"`
-	Encounter     Encounter `bson:"encounter,omitempty" json:"encounter"`
-	ChallengeDone bool      `bson:"challengedone,omitempty" json:"challengedone"`
+	EncounterId   int64     `bson:"_id,omitempty" json:"EncounterId"`
+	Encounter     Encounter `bson:"encounter,omitempty" json:"Encounter"`
+	ChallengeDone bool      `bson:"challengedone,omitempty" json:"ChallengeDone"`
 }
 
 type MiscEncounterDto struct {

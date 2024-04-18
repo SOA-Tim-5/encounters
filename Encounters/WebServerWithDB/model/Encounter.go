@@ -24,16 +24,16 @@ const (
 )
 
 type Encounter struct {
-	Id          int64           `bson:"id,omitempty" json:"id"`
-	Title       string          `bson:"title,omitempty" json:"title"`
-	Description string          `bson:"description,omitempty" json:"description"`
-	Picture     string          `bson:"picture,omitempty" json:"picture"`
-	Longitude   float64         `bson:"longitude,omitempty" json:"longitude"`
-	Latitude    float64         `bson:"latitude,omitempty" json:"latitude"`
-	Radius      float64         `bson:"radius,omitempty" json:"radius"`
-	XpReward    int             `bson:"xpreward,omitempty" json:"xpreawrd"`
-	Status      EncounterStatus `bson:"status,omitempty" json:"status"`
-	Type        EncounterType   `bson:"type,omitempty" json:"type"`
+	Id          int64           `bson:"id,omitempty" json:"Id"`
+	Title       string          `bson:"title,omitempty" json:"Title"`
+	Description string          `bson:"description,omitempty" json:"Description"`
+	Picture     string          `bson:"picture,omitempty" json:"Picture"`
+	Longitude   float64         `bson:"longitude,omitempty" json:"Longitude"`
+	Latitude    float64         `bson:"latitude,omitempty" json:"Latitude"`
+	Radius      float64         `bson:"radius,omitempty" json:"Radius"`
+	XpReward    int             `bson:"xpreward,omitempty" json:"XpReward"`
+	Status      EncounterStatus `bson:"status,omitempty" json:"Status"`
+	Type        EncounterType   `bson:"type,omitempty" json:"Type"`
 }
 
 func IsInRangeOf(givenrange float64, longitude float64, latitude float64, userLongitude float64, userLatitude float64) bool {

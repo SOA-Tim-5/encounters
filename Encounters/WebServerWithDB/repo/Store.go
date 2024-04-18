@@ -22,7 +22,7 @@ type Repository struct {
 // NoSQL: Constructor which reads db configuration from environment
 func New(ctx context.Context, logger *log.Logger) (*Repository, error) {
 	//dburi := os.Getenv("MONGO_DB_URI")
-	dburi := "mongodb://mongo:27017/"
+	dburi := "mongodb://root:pass@mongo:27017/"
 
 	client, err := mongo.NewClient(options.Client().ApplyURI(dburi))
 	if err != nil {

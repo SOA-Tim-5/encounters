@@ -15,11 +15,11 @@ const (
 )
 
 type EncounterInstance struct {
-	Id             int64                   `bson:"_id,omitempty" json:"id"`
-	EncounterId    int64                   `bson:"encounterid,omitempty" json:"encounterid"`
-	UserId         int64                   `bson:"userid,omitempty" json:"userid"`
-	Status         EncounterInstanceStatus `bson:"encounterinstancestatus,omitempty" json:"encounterinstancestatus"`
-	CompletionTime time.Time               `bson:"completitiontime,omitempty" json:"completitiontime"`
+	Id             int64                   `bson:"_id,omitempty" json:"Id"`
+	EncounterId    int64                   `bson:"encounterid,omitempty" json:"EncounterId"`
+	UserId         int64                   `bson:"userid,omitempty" json:"UserId"`
+	Status         EncounterInstanceStatus `bson:"encounterinstancestatus,omitempty" json:"EncounterInstanceStatus"`
+	CompletionTime time.Time               `bson:"completitiontime,omitempty" json:"CompletitionTime"`
 }
 
 func CompleteInstance(instance *EncounterInstance, userId int64) *EncounterInstance {
