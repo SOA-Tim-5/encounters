@@ -55,6 +55,7 @@ func (service *EncounterService) ActivateEncounter(encounterId int64, position *
 		}
 
 		err := service.EncounterInstanceRepo.CreateEncounterInstance(&instance)
+		//println(instance)
 		if err != nil {
 			return nil
 		}
@@ -198,6 +199,9 @@ func (service *EncounterService) CompleteSocialEncounter(encounterId int64, posi
 		}
 	} else {
 		println("Can't be completed")
+		println(instance.Status)
+		println(encounter.Encounter.IsInRange(position.Longitude, position.Latitude))
+		println(encounter.IsEnoughPeople(int(numberOfInstances)))
 		return nil, nil
 	}
 	return &model.TouristProgressDto{Xp: progress.Xp, Level: progress.Level}, nil
@@ -208,6 +212,7 @@ func (service *EncounterService) Complete(instance *model.EncounterInstance, pro
 	instance.CompletionTime = time.Now().UTC()
 	err2 := service.EncounterInstanceRepo.UpdateEncounterInstance(instance)
 	if err2 != nil {
+		println("Error in enc  instance update")
 		return nil, err2
 	}
 
@@ -219,6 +224,7 @@ func (service *EncounterService) Complete(instance *model.EncounterInstance, pro
 	}
 	err3 := service.TouristProgressRepo.UpdateTouristProgress(progress)
 	if err3 != nil {
+		println("Error in tourist progress")
 		return nil, err3
 	}
 
@@ -241,6 +247,7 @@ func (service *EncounterService) CompleteAllInRange(encounterId int64) error {
 		if err != nil {
 			return err
 		}
+		println("All enc are completed")
 	}
 	return nil
 }

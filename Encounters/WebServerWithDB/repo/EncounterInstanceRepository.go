@@ -114,7 +114,7 @@ func (repo *EncounterInstanceRepository) GetActiveInstances(encounterId int64) (
 	instancesCollection := repo.getEncounterInstanceCollection()
 
 	var instances []model.EncounterInstance
-	cursor, err := instancesCollection.Find(ctx, bson.M{"encounterid": encounterId, "status": 0})
+	cursor, err := instancesCollection.Find(ctx, bson.M{})
 	if err != nil {
 		repo.store.logger.Println(err)
 		return nil, err
@@ -124,9 +124,12 @@ func (repo *EncounterInstanceRepository) GetActiveInstances(encounterId int64) (
 		if err := cursor.Decode(&encounterInstance); err != nil {
 			log.Fatal(err)
 		}
-		instances = append(instances, encounterInstance)
-
+		if encounterInstance.EncounterId == encounterId && encounterInstance.Status == model.Activated {
+			instances = append(instances, encounterInstance)
+		}
+		//println(encounterInstance.EncounterId)
 	}
+	println(len(instances))
 
 	return &instances, nil
 }
