@@ -1,11 +1,14 @@
 package model
 
-//"github.com/google/uuid"
+import (
+	"encoding/json"
+	"io"
+)
 
 type MiscEncounter struct {
-	EncounterId   int64 `gorm:"primaryKey"`
-	Encounter     Encounter
-	ChallengeDone bool
+	EncounterId   int64     `bson:"_id,omitempty" json:"EncounterId"`
+	Encounter     Encounter `bson:"encounter,omitempty" json:"Encounter"`
+	ChallengeDone bool      `bson:"challengedone,omitempty" json:"ChallengeDone"`
 }
 
 type MiscEncounterDto struct {
@@ -19,4 +22,16 @@ type MiscEncounterDto struct {
 	XpReward      int
 	Status        EncounterStatus
 	Type          EncounterType
+}
+
+type MiscEncounters []*MiscEncounter
+
+func (p *MiscEncounters) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(p)
+}
+
+func (p *MiscEncounter) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(p)
 }

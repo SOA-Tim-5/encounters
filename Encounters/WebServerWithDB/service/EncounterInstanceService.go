@@ -10,6 +10,9 @@ type EncounterInstanceService struct {
 	EncounterInstanceRepo *repo.EncounterInstanceRepository
 }
 
+func NewEncounterInstanceService(ri *repo.EncounterInstanceRepository) *EncounterInstanceService {
+	return &EncounterInstanceService{ri}
+}
 
 func (service *EncounterInstanceService) FindInstanceByUser(id int64, encounterid int64) (*model.EncounterInstanceDto, error) {
 	instances, err := service.EncounterInstanceRepo.FindInstancesByUserId(id)
@@ -17,10 +20,11 @@ func (service *EncounterInstanceService) FindInstanceByUser(id int64, encounteri
 		return nil, fmt.Errorf(fmt.Sprintf("encounters not found"))
 	}
 	var foundedInstance model.EncounterInstance
-	for _, instance := range instances {
+	for _, instance := range *instances {
 
 		if instance.EncounterId == encounterid {
 			foundedInstance = instance
+			fmt.Printf("%#v", foundedInstance)
 			break
 		}
 	}

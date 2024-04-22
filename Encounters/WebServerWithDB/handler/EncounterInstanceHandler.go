@@ -14,6 +14,10 @@ type EncounterInstanceHandler struct {
 	EncounterInstanceService *service.EncounterInstanceService
 }
 
+func NewEncounterInstanceHandler(encounterInstanceService *service.EncounterInstanceService) *EncounterInstanceHandler {
+	return &EncounterInstanceHandler{encounterInstanceService}
+}
+
 func (handler *EncounterInstanceHandler) FindEncounterInstance(writer http.ResponseWriter, req *http.Request) {
 	strid := mux.Vars(req)["id"]
 	id, err := strconv.ParseInt(strid, 10, 64)

@@ -14,6 +14,10 @@ type TouristProgressHandler struct {
 	TouristProgressService *service.TouristProgressService
 }
 
+func NewTouristProgressHandler(touristProgressService *service.TouristProgressService) *TouristProgressHandler {
+	return &TouristProgressHandler{touristProgressService}
+}
+
 func (handler *TouristProgressHandler) FindTouristProgressByTouristId(writer http.ResponseWriter, req *http.Request) {
 	println("tourist progress")
 	strid := mux.Vars(req)["id"]

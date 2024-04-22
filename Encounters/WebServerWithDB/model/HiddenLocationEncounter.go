@@ -1,17 +1,17 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"math"
 )
 
-//"github.com/google/uuid"
-
 type HiddenLocationEncounter struct {
-	EncounterId      int64 `gorm:"primaryKey"`
-	Encounter        Encounter
-	PictureLongitude float64
-	PictureLatitude  float64
+	EncounterId      int64     `bson:"_id,omitempty" json:"EncounterId"`
+	Encounter        Encounter `bson:"encounter,omitempty" json:"Encounter"`
+	PictureLongitude float64   `bson:"picturelongitude,omitempty" json:"PictureLongitude"`
+	PictureLatitude  float64   `bson:"picturelatitude,omitempty" json:"PictureLatitude"`
 }
 
 type HiddenLocationEncounterDto struct {
@@ -45,4 +45,16 @@ func (encounter *HiddenLocationEncounter) IsUserInCompletitionRange(longitude fl
 	fmt.Println(distance)
 
 	return distance < 100
+}
+
+type HiddenLocationEncounters []*HiddenLocationEncounter
+
+func (p *HiddenLocationEncounters) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(p)
+}
+
+func (p *HiddenLocationEncounter) ToJSON(w io.Writer) error {
+	e := json.NewEncoder(w)
+	return e.Encode(p)
 }

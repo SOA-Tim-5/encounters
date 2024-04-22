@@ -2,9 +2,9 @@ package model
 
 //"github.com/google/uuid"
 type SocialEncounter struct {
-	EncounterId  int64 `gorm:"primaryKey"`
-	Encounter    Encounter
-	PeopleNumber int
+	EncounterId  int64     `bson:"_id,omitempty" json:"EncounterId"`
+	Encounter    Encounter `bson:"encounter,omitempty" json:"Encounter"`
+	PeopleNumber int       `bson:"peoplenumber,omitempty" json:"PeopleNumber"`
 }
 
 type SocialEncounterDto struct {
