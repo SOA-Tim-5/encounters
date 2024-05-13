@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+option go_package = "proto/encounter";
+
+service Encounter {
+    rpc CreateMiscEncounter(MiscEncounterCreateDto) returns (MiscEncounterResponseDto) {}
+}
+
+message MiscEncounterCreateDto {
+bool ChallengeDone=1;
+ string Title=2;
+ string Description=3;
+ string Picture=4;
+ double Longitude=5;
+ double Latitude =6;
+ double Radius=7;
+ int32 XpReward=8;
+  enum EncounterStatus {
+        Active = 0;
+        Draft = 1;
+        Archived = 2;
+    };
+ EncounterStatus Status=9;
+}
+
+message MiscEncounterResponseDto {
+    int64 Id=1;
+bool ChallengeDone=2;
+ string Title=3;
+ string Description=4;
+ string Picture=5;
+ double Longitude=6;
+ double Latitude =7;
+ double Radius=8;
+ int32 XpReward=9;
+  enum EncounterStatus {
+        Active = 0;
+        Draft = 1;
+        Archived = 2;
+    };
+ EncounterStatus Status=10;
+}
