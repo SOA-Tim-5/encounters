@@ -30,6 +30,8 @@ type EncounterClient interface {
 	Activate(ctx context.Context, in *TouristPosition, opts ...grpc.CallOption) (*EncounterResponseDto, error)
 	CompleteMisc(ctx context.Context, in *EncounterInstanceId, opts ...grpc.CallOption) (*TouristProgress, error)
 	CompleteSocialEncounter(ctx context.Context, in *TouristPosition, opts ...grpc.CallOption) (*TouristProgress, error)
+	CompleteHiddenLocationEncounter(ctx context.Context, in *TouristPosition, opts ...grpc.CallOption) (*Inrange, error)
+	IsUserInCompletitionRange(ctx context.Context, in *Position, opts ...grpc.CallOption) (*Inrange, error)
 }
 
 type encounterClient struct {
@@ -112,6 +114,24 @@ func (c *encounterClient) CompleteSocialEncounter(ctx context.Context, in *Touri
 	return out, nil
 }
 
+func (c *encounterClient) CompleteHiddenLocationEncounter(ctx context.Context, in *TouristPosition, opts ...grpc.CallOption) (*Inrange, error) {
+	out := new(Inrange)
+	err := c.cc.Invoke(ctx, "/Encounter/CompleteHiddenLocationEncounter", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *encounterClient) IsUserInCompletitionRange(ctx context.Context, in *Position, opts ...grpc.CallOption) (*Inrange, error) {
+	out := new(Inrange)
+	err := c.cc.Invoke(ctx, "/Encounter/IsUserInCompletitionRange", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EncounterServer is the server API for Encounter service.
 // All implementations must embed UnimplementedEncounterServer
 // for forward compatibility
@@ -124,6 +144,8 @@ type EncounterServer interface {
 	Activate(context.Context, *TouristPosition) (*EncounterResponseDto, error)
 	CompleteMisc(context.Context, *EncounterInstanceId) (*TouristProgress, error)
 	CompleteSocialEncounter(context.Context, *TouristPosition) (*TouristProgress, error)
+	CompleteHiddenLocationEncounter(context.Context, *TouristPosition) (*Inrange, error)
+	IsUserInCompletitionRange(context.Context, *Position) (*Inrange, error)
 	mustEmbedUnimplementedEncounterServer()
 }
 
@@ -154,6 +176,12 @@ func (UnimplementedEncounterServer) CompleteMisc(context.Context, *EncounterInst
 }
 func (UnimplementedEncounterServer) CompleteSocialEncounter(context.Context, *TouristPosition) (*TouristProgress, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CompleteSocialEncounter not implemented")
+}
+func (UnimplementedEncounterServer) CompleteHiddenLocationEncounter(context.Context, *TouristPosition) (*Inrange, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompleteHiddenLocationEncounter not implemented")
+}
+func (UnimplementedEncounterServer) IsUserInCompletitionRange(context.Context, *Position) (*Inrange, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsUserInCompletitionRange not implemented")
 }
 func (UnimplementedEncounterServer) mustEmbedUnimplementedEncounterServer() {}
 
@@ -312,6 +340,42 @@ func _Encounter_CompleteSocialEncounter_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Encounter_CompleteHiddenLocationEncounter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TouristPosition)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EncounterServer).CompleteHiddenLocationEncounter(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Encounter/CompleteHiddenLocationEncounter",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EncounterServer).CompleteHiddenLocationEncounter(ctx, req.(*TouristPosition))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Encounter_IsUserInCompletitionRange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Position)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EncounterServer).IsUserInCompletitionRange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Encounter/IsUserInCompletitionRange",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EncounterServer).IsUserInCompletitionRange(ctx, req.(*Position))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Encounter_ServiceDesc is the grpc.ServiceDesc for Encounter service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -350,6 +414,14 @@ var Encounter_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CompleteSocialEncounter",
 			Handler:    _Encounter_CompleteSocialEncounter_Handler,
+		},
+		{
+			MethodName: "CompleteHiddenLocationEncounter",
+			Handler:    _Encounter_CompleteHiddenLocationEncounter_Handler,
+		},
+		{
+			MethodName: "IsUserInCompletitionRange",
+			Handler:    _Encounter_IsUserInCompletitionRange_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

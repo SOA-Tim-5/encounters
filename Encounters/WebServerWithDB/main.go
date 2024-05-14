@@ -279,12 +279,19 @@ func (s Server) FindEncounterInstance(ctx context.Context, request *encounter.En
 	if instance != nil {
 		protoTimestamp, _ := ptypes.TimestampProto(instance.CompletionTime)
 
-		return &encounter.EncounterInstanceResponseDto{
-			UserId: instance.UserId, Status: encounter.EncounterInstanceResponseDto_EncounterInstanceStatus(instance.Status),
-			CompletitionTime: protoTimestamp}, nil
+		if instance.Status == model.Activated {
+
+			return &encounter.EncounterInstanceResponseDto{
+				UserId: instance.UserId, Status: 0,
+				CompletitionTime: protoTimestamp}, nil
+		} else if instance.Status == model.Completed {
+			return &encounter.EncounterInstanceResponseDto{
+				UserId: instance.UserId, Status: 1,
+				CompletitionTime: protoTimestamp}, nil
+		}
 	}
 	return &encounter.EncounterInstanceResponseDto{
-		UserId: -1, Status: encounter.EncounterInstanceResponseDto_EncounterInstanceStatus(0),
+		UserId: 0, Status: 0,
 		CompletitionTime: ptypes.TimestampNow()}, nil
 }
 
@@ -345,5 +352,22 @@ func (s Server) CompleteSocialEncounter(ctx context.Context, request *encounter.
 	return &encounter.TouristProgress{
 		Xp:    int64(touristProgress.Xp),
 		Level: int64(touristProgress.Level)}, nil
+
+}
+func (s Server) CompleteHiddenLocationEncounter(ctx context.Context, request *encounter.TouristPosition) (*encounter.Inrange, error) {
+	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo)
+	newTouristProgress := model.TouristPosition{
+		Longitude: request.Longitude,
+		Latitude:  request.Latitude,
+		TouristId: request.TouristId}
+
+	_ = encounterService.CompleteHiddenLocationEncounter(request.EncounterId, &newTouristProgress)
+	return &encounter.Inrange{In: true}, nil
+}
+func (s Server) IsUserInCompletitionRange(ctx context.Context, request *encounter.Position) (*encounter.Inrange, error) {
+	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo)
+	isUserInCompletitionRange := encounterService.IsUserInCompletitionRange(request.Id, request.Longitude, request.Latitude)
+	return &encounter.Inrange{
+		In: isUserInCompletitionRange}, nil
 
 }
