@@ -143,7 +143,7 @@ func (s Server) CreateMiscEncounter(ctx context.Context, request *encounter.Misc
 		EncounterId: id,
 		Encounter: model.Encounter{Id: id, Title: request.Title, Description: request.Description,
 			Picture: request.Picture, Longitude: request.Longitude, Latitude: request.Latitude,
-			Radius: request.Radius, XpReward: int(request.XpReward), Status: model.EncounterStatus(request.Status),
+			Radius: request.Radius, XpReward: int(request.XpReward), Status: model.EncounterStatus(model.Active),
 			Type: model.Misc},
 		ChallengeDone: request.ChallengeDone,
 	}
@@ -169,7 +169,7 @@ func (s Server) CreateSocialEncounter(ctx context.Context, socialEncounterDto *e
 		EncounterId: id,
 		Encounter: model.Encounter{Id: id, Title: socialEncounterDto.Title, Description: socialEncounterDto.Description,
 			Picture: socialEncounterDto.Picture, Longitude: socialEncounterDto.Longitude, Latitude: socialEncounterDto.Latitude,
-			Radius: socialEncounterDto.Radius, XpReward: int(socialEncounterDto.XpReward), Status: model.EncounterStatus(socialEncounterDto.Status),
+			Radius: socialEncounterDto.Radius, XpReward: int(socialEncounterDto.XpReward), Status: model.EncounterStatus(model.Active),
 			Type: model.Social},
 		PeopleNumber: int(socialEncounterDto.PeopleNumber),
 	}
@@ -194,7 +194,7 @@ func (s Server) CreateHiddenLocationEncounter(ctx context.Context, hiddenLocatio
 		EncounterId: id,
 		Encounter: model.Encounter{Id: id, Title: hiddenLocationEncounterDto.Title, Description: hiddenLocationEncounterDto.Description,
 			Picture: hiddenLocationEncounterDto.Picture, Longitude: hiddenLocationEncounterDto.Longitude, Latitude: hiddenLocationEncounterDto.Latitude,
-			Radius: hiddenLocationEncounterDto.Radius, XpReward: int(hiddenLocationEncounterDto.XpReward), Status: model.EncounterStatus(hiddenLocationEncounterDto.Status),
+			Radius: hiddenLocationEncounterDto.Radius, XpReward: int(hiddenLocationEncounterDto.XpReward), Status: model.EncounterStatus(model.Active),
 			Type: model.Hidden},
 		PictureLongitude: hiddenLocationEncounterDto.PictureLongitude,
 		PictureLatitude:  hiddenLocationEncounterDto.PictureLatitude,
@@ -277,5 +277,13 @@ func (s Server) Activate(ctx context.Context, request *encounter.TouristPosition
 		Picture: enc.Picture, Longitude: enc.Longitude, Latitude: enc.Latitude,
 		Radius: enc.Radius, XpReward: int32(enc.XpReward), Status: encounter.EncounterResponseDto_EncounterStatus(enc.Status),
 	}, nil
+
+}
+func (s Server) CompleteMisc(ctx context.Context, request *encounter.EncounterInstanceId) (*encounter.TouristProgress, error) {
+	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo)
+	touristProgress, _ := encounterService.CompleteMiscEncounter(request.Id, request.EncounterId)
+	return &encounter.TouristProgress{
+		Xp:    int64(touristProgress.Xp),
+		Level: int64(touristProgress.Level)}, nil
 
 }

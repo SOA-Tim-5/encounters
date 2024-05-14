@@ -28,6 +28,7 @@ type EncounterClient interface {
 	FindAllInRangeOf(ctx context.Context, in *UserPositionWithRange, opts ...grpc.CallOption) (*ListEncounterResponseDto, error)
 	FindEncounterInstance(ctx context.Context, in *EncounterInstanceId, opts ...grpc.CallOption) (*EncounterInstanceResponseDto, error)
 	Activate(ctx context.Context, in *TouristPosition, opts ...grpc.CallOption) (*EncounterResponseDto, error)
+	CompleteMisc(ctx context.Context, in *EncounterInstanceId, opts ...grpc.CallOption) (*TouristProgress, error)
 }
 
 type encounterClient struct {
@@ -92,6 +93,15 @@ func (c *encounterClient) Activate(ctx context.Context, in *TouristPosition, opt
 	return out, nil
 }
 
+func (c *encounterClient) CompleteMisc(ctx context.Context, in *EncounterInstanceId, opts ...grpc.CallOption) (*TouristProgress, error) {
+	out := new(TouristProgress)
+	err := c.cc.Invoke(ctx, "/Encounter/CompleteMisc", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EncounterServer is the server API for Encounter service.
 // All implementations must embed UnimplementedEncounterServer
 // for forward compatibility
@@ -102,6 +112,7 @@ type EncounterServer interface {
 	FindAllInRangeOf(context.Context, *UserPositionWithRange) (*ListEncounterResponseDto, error)
 	FindEncounterInstance(context.Context, *EncounterInstanceId) (*EncounterInstanceResponseDto, error)
 	Activate(context.Context, *TouristPosition) (*EncounterResponseDto, error)
+	CompleteMisc(context.Context, *EncounterInstanceId) (*TouristProgress, error)
 	mustEmbedUnimplementedEncounterServer()
 }
 
@@ -126,6 +137,9 @@ func (UnimplementedEncounterServer) FindEncounterInstance(context.Context, *Enco
 }
 func (UnimplementedEncounterServer) Activate(context.Context, *TouristPosition) (*EncounterResponseDto, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Activate not implemented")
+}
+func (UnimplementedEncounterServer) CompleteMisc(context.Context, *EncounterInstanceId) (*TouristProgress, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CompleteMisc not implemented")
 }
 func (UnimplementedEncounterServer) mustEmbedUnimplementedEncounterServer() {}
 
@@ -248,6 +262,24 @@ func _Encounter_Activate_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Encounter_CompleteMisc_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EncounterInstanceId)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EncounterServer).CompleteMisc(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Encounter/CompleteMisc",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EncounterServer).CompleteMisc(ctx, req.(*EncounterInstanceId))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Encounter_ServiceDesc is the grpc.ServiceDesc for Encounter service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -278,6 +310,10 @@ var Encounter_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Activate",
 			Handler:    _Encounter_Activate_Handler,
+		},
+		{
+			MethodName: "CompleteMisc",
+			Handler:    _Encounter_CompleteMisc_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

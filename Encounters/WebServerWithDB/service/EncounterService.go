@@ -52,7 +52,6 @@ func (service *EncounterService) ActivateEncounter(encounterId int64, position *
 		var instance model.EncounterInstance = model.EncounterInstance{
 			Id: CreateId(), EncounterId: encounterId, UserId: position.TouristId, Status: model.Activated, CompletionTime: time.Now().UTC(),
 		}
-		println("USAAAAAAA")
 		err := service.EncounterInstanceRepo.CreateEncounterInstance(&instance)
 		if err != nil {
 			return nil
@@ -160,6 +159,8 @@ func (service *EncounterService) FindAllDoneByUser(id int64) ([]*model.Encounter
 
 func (service *EncounterService) CompleteMiscEncounter(userid int64, encounterid int64) (*model.TouristProgressDto, error) {
 	foundedInstance, _ := service.EncounterInstanceRepo.GetEncounterInstance(encounterid, userid)
+	println("NASAO INSTANCU")
+	println(foundedInstance.Id)
 
 	service.EncounterInstanceRepo.UpdateEncounterInstance(model.Complete(foundedInstance))
 
