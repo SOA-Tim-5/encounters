@@ -25,6 +25,9 @@ type EncounterClient interface {
 	CreateMiscEncounter(ctx context.Context, in *MiscEncounterCreateDto, opts ...grpc.CallOption) (*MiscEncounterResponseDto, error)
 	CreateSocialEncounter(ctx context.Context, in *SocialEncounterCreateDto, opts ...grpc.CallOption) (*EncounterResponseDto, error)
 	CreateHiddenLocationEncounter(ctx context.Context, in *HiddenLocationEncounterCreateDto, opts ...grpc.CallOption) (*HiddenLocationEncounterResponseDto, error)
+	FindAllInRangeOf(ctx context.Context, in *UserPositionWithRange, opts ...grpc.CallOption) (*ListEncounterResponseDto, error)
+	FindEncounterInstance(ctx context.Context, in *EncounterInstanceId, opts ...grpc.CallOption) (*EncounterInstanceResponseDto, error)
+	Activate(ctx context.Context, in *TouristPosition, opts ...grpc.CallOption) (*EncounterResponseDto, error)
 }
 
 type encounterClient struct {
@@ -62,6 +65,33 @@ func (c *encounterClient) CreateHiddenLocationEncounter(ctx context.Context, in 
 	return out, nil
 }
 
+func (c *encounterClient) FindAllInRangeOf(ctx context.Context, in *UserPositionWithRange, opts ...grpc.CallOption) (*ListEncounterResponseDto, error) {
+	out := new(ListEncounterResponseDto)
+	err := c.cc.Invoke(ctx, "/Encounter/FindAllInRangeOf", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *encounterClient) FindEncounterInstance(ctx context.Context, in *EncounterInstanceId, opts ...grpc.CallOption) (*EncounterInstanceResponseDto, error) {
+	out := new(EncounterInstanceResponseDto)
+	err := c.cc.Invoke(ctx, "/Encounter/FindEncounterInstance", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *encounterClient) Activate(ctx context.Context, in *TouristPosition, opts ...grpc.CallOption) (*EncounterResponseDto, error) {
+	out := new(EncounterResponseDto)
+	err := c.cc.Invoke(ctx, "/Encounter/Activate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EncounterServer is the server API for Encounter service.
 // All implementations must embed UnimplementedEncounterServer
 // for forward compatibility
@@ -69,6 +99,9 @@ type EncounterServer interface {
 	CreateMiscEncounter(context.Context, *MiscEncounterCreateDto) (*MiscEncounterResponseDto, error)
 	CreateSocialEncounter(context.Context, *SocialEncounterCreateDto) (*EncounterResponseDto, error)
 	CreateHiddenLocationEncounter(context.Context, *HiddenLocationEncounterCreateDto) (*HiddenLocationEncounterResponseDto, error)
+	FindAllInRangeOf(context.Context, *UserPositionWithRange) (*ListEncounterResponseDto, error)
+	FindEncounterInstance(context.Context, *EncounterInstanceId) (*EncounterInstanceResponseDto, error)
+	Activate(context.Context, *TouristPosition) (*EncounterResponseDto, error)
 	mustEmbedUnimplementedEncounterServer()
 }
 
@@ -84,6 +117,15 @@ func (UnimplementedEncounterServer) CreateSocialEncounter(context.Context, *Soci
 }
 func (UnimplementedEncounterServer) CreateHiddenLocationEncounter(context.Context, *HiddenLocationEncounterCreateDto) (*HiddenLocationEncounterResponseDto, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateHiddenLocationEncounter not implemented")
+}
+func (UnimplementedEncounterServer) FindAllInRangeOf(context.Context, *UserPositionWithRange) (*ListEncounterResponseDto, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindAllInRangeOf not implemented")
+}
+func (UnimplementedEncounterServer) FindEncounterInstance(context.Context, *EncounterInstanceId) (*EncounterInstanceResponseDto, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindEncounterInstance not implemented")
+}
+func (UnimplementedEncounterServer) Activate(context.Context, *TouristPosition) (*EncounterResponseDto, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Activate not implemented")
 }
 func (UnimplementedEncounterServer) mustEmbedUnimplementedEncounterServer() {}
 
@@ -152,6 +194,60 @@ func _Encounter_CreateHiddenLocationEncounter_Handler(srv interface{}, ctx conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Encounter_FindAllInRangeOf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UserPositionWithRange)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EncounterServer).FindAllInRangeOf(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Encounter/FindAllInRangeOf",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EncounterServer).FindAllInRangeOf(ctx, req.(*UserPositionWithRange))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Encounter_FindEncounterInstance_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EncounterInstanceId)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EncounterServer).FindEncounterInstance(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Encounter/FindEncounterInstance",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EncounterServer).FindEncounterInstance(ctx, req.(*EncounterInstanceId))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Encounter_Activate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TouristPosition)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EncounterServer).Activate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Encounter/Activate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EncounterServer).Activate(ctx, req.(*TouristPosition))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Encounter_ServiceDesc is the grpc.ServiceDesc for Encounter service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -170,6 +266,18 @@ var Encounter_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateHiddenLocationEncounter",
 			Handler:    _Encounter_CreateHiddenLocationEncounter_Handler,
+		},
+		{
+			MethodName: "FindAllInRangeOf",
+			Handler:    _Encounter_FindAllInRangeOf_Handler,
+		},
+		{
+			MethodName: "FindEncounterInstance",
+			Handler:    _Encounter_FindEncounterInstance_Handler,
+		},
+		{
+			MethodName: "Activate",
+			Handler:    _Encounter_Activate_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

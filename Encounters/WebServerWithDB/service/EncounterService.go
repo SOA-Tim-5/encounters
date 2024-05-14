@@ -48,12 +48,11 @@ func (service *EncounterService) CreateSocialEncounter(socialEncounter *model.So
 
 func (service *EncounterService) ActivateEncounter(encounterId int64, position *model.TouristPosition) *model.Encounter {
 	encounter, _ := service.EncounterRepo.FindEncounterById(encounterId)
-	fmt.Println("ff %d", encounter.Description)
 	if encounter.IsForActivating(position.TouristId, position.Longitude, position.Latitude) && !service.EncounterRepo.HasUserActivatedOrCompletedEncounter(encounterId, position.TouristId) {
 		var instance model.EncounterInstance = model.EncounterInstance{
 			Id: CreateId(), EncounterId: encounterId, UserId: position.TouristId, Status: model.Activated, CompletionTime: time.Now().UTC(),
 		}
-
+		println("USAAAAAAA")
 		err := service.EncounterInstanceRepo.CreateEncounterInstance(&instance)
 		if err != nil {
 			return nil

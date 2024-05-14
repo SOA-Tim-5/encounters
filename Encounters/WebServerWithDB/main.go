@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/golang/protobuf/ptypes"
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -210,4 +211,71 @@ func (s Server) CreateHiddenLocationEncounter(ctx context.Context, hiddenLocatio
 		Radius: hiddenLocationEncounterDto.Radius, XpReward: hiddenLocationEncounterDto.XpReward, PictureLongitude: hiddenLocationEncounterDto.PictureLongitude,
 		PictureLatitude: hiddenLocationEncounterDto.PictureLatitude, Status: encounter.HiddenLocationEncounterResponseDto_EncounterStatus(hiddenLocationEncounterDto.Status),
 	}, nil
+}
+func (s Server) FindAllInRangeOf(ctx context.Context, request *encounter.UserPositionWithRange) (*encounter.ListEncounterResponseDto, error) {
+	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo)
+	encounters, err := encounterService.FindAllInRangeOf(request.Range, request.Longitude, request.Latitude)
+	if err != nil {
+		return nil, err
+	}
+	println(len(encounters))
+	println(request.Range)
+	println(request.Longitude)
+	println(request.Latitude)
+
+	var encResponse []*encounter.EncounterResponseDto
+	for _, enc := range encounters {
+		encResponse = append(encResponse, &encounter.EncounterResponseDto{
+			Id:          enc.Id,
+			Title:       enc.Title,
+			Description: enc.Description,
+			Picture:     enc.Picture,
+			Longitude:   enc.Longitude,
+			Latitude:    enc.Latitude,
+			Radius:      enc.Radius,
+			XpReward:    int32(enc.XpReward),
+			Status:      encounter.EncounterResponseDto_EncounterStatus(enc.Status),
+		})
+	}
+
+	return &encounter.ListEncounterResponseDto{Encounters: encResponse}, nil
+}
+
+func (s Server) FindEncounterInstance(ctx context.Context, request *encounter.EncounterInstanceId) (*encounter.EncounterInstanceResponseDto, error) {
+	encounterInstanceService := service.NewEncounterInstanceService(s.EncounterInstanceRepo)
+	instance, _ := encounterInstanceService.FindInstanceByUser(request.Id, request.EncounterId)
+	if instance != nil {
+		protoTimestamp, _ := ptypes.TimestampProto(instance.CompletionTime)
+
+		return &encounter.EncounterInstanceResponseDto{
+			UserId: instance.UserId, Status: encounter.EncounterInstanceResponseDto_EncounterInstanceStatus(instance.Status),
+			CompletitionTime: protoTimestamp}, nil
+	}
+	return &encounter.EncounterInstanceResponseDto{
+		UserId: -1, Status: encounter.EncounterInstanceResponseDto_EncounterInstanceStatus(0),
+		CompletitionTime: ptypes.TimestampNow()}, nil
+}
+
+func (s Server) Activate(ctx context.Context, request *encounter.TouristPosition) (*encounter.EncounterResponseDto, error) {
+	touristPosition := model.TouristPosition{
+		TouristId: request.TouristId, Longitude: request.Longitude, Latitude: request.Latitude,
+	}
+
+	println(touristPosition.TouristId)
+	println(touristPosition.Longitude)
+	println(touristPosition.Latitude)
+	println(request.EncounterId)
+
+	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo)
+	enc := encounterService.ActivateEncounter(request.EncounterId, &touristPosition)
+	if enc == nil {
+		println("Error while activating")
+		return nil, nil
+	}
+	return &encounter.EncounterResponseDto{
+		Id: enc.Id, Title: enc.Title, Description: enc.Description,
+		Picture: enc.Picture, Longitude: enc.Longitude, Latitude: enc.Latitude,
+		Radius: enc.Radius, XpReward: int32(enc.XpReward), Status: encounter.EncounterResponseDto_EncounterStatus(enc.Status),
+	}, nil
+
 }
