@@ -32,6 +32,7 @@ type EncounterClient interface {
 	CompleteSocialEncounter(ctx context.Context, in *TouristPosition, opts ...grpc.CallOption) (*TouristProgress, error)
 	CompleteHiddenLocationEncounter(ctx context.Context, in *TouristPosition, opts ...grpc.CallOption) (*Inrange, error)
 	IsUserInCompletitionRange(ctx context.Context, in *Position, opts ...grpc.CallOption) (*Inrange, error)
+	FindTouristProgressByTouristId(ctx context.Context, in *TouristId, opts ...grpc.CallOption) (*TouristProgress, error)
 }
 
 type encounterClient struct {
@@ -132,6 +133,15 @@ func (c *encounterClient) IsUserInCompletitionRange(ctx context.Context, in *Pos
 	return out, nil
 }
 
+func (c *encounterClient) FindTouristProgressByTouristId(ctx context.Context, in *TouristId, opts ...grpc.CallOption) (*TouristProgress, error) {
+	out := new(TouristProgress)
+	err := c.cc.Invoke(ctx, "/Encounter/FindTouristProgressByTouristId", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // EncounterServer is the server API for Encounter service.
 // All implementations must embed UnimplementedEncounterServer
 // for forward compatibility
@@ -146,6 +156,7 @@ type EncounterServer interface {
 	CompleteSocialEncounter(context.Context, *TouristPosition) (*TouristProgress, error)
 	CompleteHiddenLocationEncounter(context.Context, *TouristPosition) (*Inrange, error)
 	IsUserInCompletitionRange(context.Context, *Position) (*Inrange, error)
+	FindTouristProgressByTouristId(context.Context, *TouristId) (*TouristProgress, error)
 	mustEmbedUnimplementedEncounterServer()
 }
 
@@ -182,6 +193,9 @@ func (UnimplementedEncounterServer) CompleteHiddenLocationEncounter(context.Cont
 }
 func (UnimplementedEncounterServer) IsUserInCompletitionRange(context.Context, *Position) (*Inrange, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method IsUserInCompletitionRange not implemented")
+}
+func (UnimplementedEncounterServer) FindTouristProgressByTouristId(context.Context, *TouristId) (*TouristProgress, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method FindTouristProgressByTouristId not implemented")
 }
 func (UnimplementedEncounterServer) mustEmbedUnimplementedEncounterServer() {}
 
@@ -376,6 +390,24 @@ func _Encounter_IsUserInCompletitionRange_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Encounter_FindTouristProgressByTouristId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(TouristId)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EncounterServer).FindTouristProgressByTouristId(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Encounter/FindTouristProgressByTouristId",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EncounterServer).FindTouristProgressByTouristId(ctx, req.(*TouristId))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Encounter_ServiceDesc is the grpc.ServiceDesc for Encounter service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -422,6 +454,10 @@ var Encounter_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "IsUserInCompletitionRange",
 			Handler:    _Encounter_IsUserInCompletitionRange_Handler,
+		},
+		{
+			MethodName: "FindTouristProgressByTouristId",
+			Handler:    _Encounter_FindTouristProgressByTouristId_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

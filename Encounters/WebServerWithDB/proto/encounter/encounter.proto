@@ -15,6 +15,7 @@ service Encounter {
     rpc CompleteSocialEncounter(TouristPosition) returns (TouristProgress) {}
     rpc CompleteHiddenLocationEncounter(TouristPosition) returns (Inrange) {}
     rpc IsUserInCompletitionRange(Position) returns (Inrange) {}
+    rpc FindTouristProgressByTouristId(TouristId) returns (TouristProgress) {}
 
 }
 
@@ -168,4 +169,8 @@ message Position{
     int64 Id=1;
     double Longitude=2;
     double Latitude=3;
+}
+
+message TouristId{
+    int64 Id=1;
 }

@@ -371,3 +371,12 @@ func (s Server) IsUserInCompletitionRange(ctx context.Context, request *encounte
 		In: isUserInCompletitionRange}, nil
 
 }
+
+func (s Server) FindTouristProgressByTouristId(ctx context.Context, request *encounter.TouristId) (*encounter.TouristProgress, error) {
+	tpService := service.NewTouristProgressService(s.TouristProgressRepo)
+	touristProgress, _ := tpService.FindTouristProgressByTouristId(request.Id)
+	return &encounter.TouristProgress{
+		Xp:    int64(touristProgress.Xp),
+		Level: int64(touristProgress.Level)}, nil
+
+}
