@@ -75,6 +75,15 @@ func (repo *EncounterInstanceRepository) CreateEncounterInstance(instance *model
 		return err
 	}
 	repo.store.logger.Printf("Documents ID: %v\n", result.InsertedID)
+	filter := bson.M{"_id": instance.Id}
+	update := bson.M{"$set": bson.M{
+		"completitiontime":        instance.CompletionTime,
+		"encounterinstancestatus": 0,
+		"userid":                  instance.UserId,
+		"encounterid":             instance.EncounterId,
+	}}
+	t, err := Collection.UpdateOne(ctx, filter, update)
+	print(t)
 	return nil
 }
 
@@ -114,7 +123,7 @@ func (repo *EncounterInstanceRepository) GetActiveInstances(encounterId int64) (
 	instancesCollection := repo.getEncounterInstanceCollection()
 
 	var instances []model.EncounterInstance
-	cursor, err := instancesCollection.Find(ctx, bson.M{"encounterid": encounterId, "status": 0})
+	cursor, err := instancesCollection.Find(ctx, bson.M{"encounterid": encounterId, "encounterinstancestatus": 0})
 	if err != nil {
 		repo.store.logger.Println(err)
 		return nil, err

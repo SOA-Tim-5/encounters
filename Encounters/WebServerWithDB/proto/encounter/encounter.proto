@@ -12,6 +12,7 @@ service Encounter {
     rpc FindEncounterInstance(EncounterInstanceId) returns (EncounterInstanceResponseDto) {}
     rpc Activate(TouristPosition) returns (EncounterResponseDto) {}
     rpc CompleteMisc(EncounterInstanceId) returns (TouristProgress) {}
+    rpc CompleteSocialEncounter(TouristPosition) returns (TouristProgress) {}
 
 }
 
@@ -83,13 +84,7 @@ message EncounterResponseDto
         Archived = 2;
     };
     EncounterStatus Status =9;
-      enum EncounterType {
-        Social = 0;
-        Hidden = 1;
-        Misc = 2;
-        Keypoint = 3;
-    };
-    EncounterType Type=10;
+    int64 Type=10;
 }
 
 message HiddenLocationEncounterCreateDto{

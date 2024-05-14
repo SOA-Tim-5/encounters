@@ -170,7 +170,7 @@ func (s Server) CreateSocialEncounter(ctx context.Context, socialEncounterDto *e
 		Encounter: model.Encounter{Id: id, Title: socialEncounterDto.Title, Description: socialEncounterDto.Description,
 			Picture: socialEncounterDto.Picture, Longitude: socialEncounterDto.Longitude, Latitude: socialEncounterDto.Latitude,
 			Radius: socialEncounterDto.Radius, XpReward: int(socialEncounterDto.XpReward), Status: model.EncounterStatus(model.Active),
-			Type: model.Social},
+			Type: 0},
 		PeopleNumber: int(socialEncounterDto.PeopleNumber),
 	}
 	encounterService := service.NewEncounterService(s.EncounterRepo, nil, nil)
@@ -225,17 +225,49 @@ func (s Server) FindAllInRangeOf(ctx context.Context, request *encounter.UserPos
 
 	var encResponse []*encounter.EncounterResponseDto
 	for _, enc := range encounters {
-		encResponse = append(encResponse, &encounter.EncounterResponseDto{
-			Id:          enc.Id,
-			Title:       enc.Title,
-			Description: enc.Description,
-			Picture:     enc.Picture,
-			Longitude:   enc.Longitude,
-			Latitude:    enc.Latitude,
-			Radius:      enc.Radius,
-			XpReward:    int32(enc.XpReward),
-			Status:      encounter.EncounterResponseDto_EncounterStatus(enc.Status),
-		})
+		if enc.Type == model.Misc {
+			broj := int64(2)
+			encResponse = append(encResponse, &encounter.EncounterResponseDto{
+				Id:          enc.Id,
+				Title:       enc.Title,
+				Description: enc.Description,
+				Picture:     enc.Picture,
+				Longitude:   enc.Longitude,
+				Latitude:    enc.Latitude,
+				Radius:      enc.Radius,
+				XpReward:    int32(enc.XpReward),
+				Status:      encounter.EncounterResponseDto_EncounterStatus(enc.Status),
+				Type:        broj,
+			})
+		} else if enc.Type == model.Hidden {
+			broj := int64(1)
+			encResponse = append(encResponse, &encounter.EncounterResponseDto{
+				Id:          enc.Id,
+				Title:       enc.Title,
+				Description: enc.Description,
+				Picture:     enc.Picture,
+				Longitude:   enc.Longitude,
+				Latitude:    enc.Latitude,
+				Radius:      enc.Radius,
+				XpReward:    int32(enc.XpReward),
+				Status:      encounter.EncounterResponseDto_EncounterStatus(enc.Status),
+				Type:        broj,
+			})
+		} else {
+			broj := int64(0)
+			encResponse = append(encResponse, &encounter.EncounterResponseDto{
+				Id:          enc.Id,
+				Title:       enc.Title,
+				Description: enc.Description,
+				Picture:     enc.Picture,
+				Longitude:   enc.Longitude,
+				Latitude:    enc.Latitude,
+				Radius:      enc.Radius,
+				XpReward:    int32(enc.XpReward),
+				Status:      encounter.EncounterResponseDto_EncounterStatus(enc.Status),
+				Type:        broj,
+			})
+		}
 	}
 
 	return &encounter.ListEncounterResponseDto{Encounters: encResponse}, nil
@@ -272,16 +304,44 @@ func (s Server) Activate(ctx context.Context, request *encounter.TouristPosition
 		println("Error while activating")
 		return nil, nil
 	}
+	broj := int64(0)
+
+	if enc.Type == model.Misc {
+		broj := int64(2)
+		return &encounter.EncounterResponseDto{
+			Id: enc.Id, Title: enc.Title, Description: enc.Description,
+			Picture: enc.Picture, Longitude: enc.Longitude, Latitude: enc.Latitude,
+			Radius: enc.Radius, XpReward: int32(enc.XpReward), Status: encounter.EncounterResponseDto_EncounterStatus(enc.Status), Type: broj}, nil
+	} else if enc.Type == model.Hidden {
+		broj := int64(1)
+		return &encounter.EncounterResponseDto{
+			Id: enc.Id, Title: enc.Title, Description: enc.Description,
+			Picture: enc.Picture, Longitude: enc.Longitude, Latitude: enc.Latitude,
+			Radius: enc.Radius, XpReward: int32(enc.XpReward), Status: encounter.EncounterResponseDto_EncounterStatus(enc.Status), Type: broj}, nil
+	}
+
 	return &encounter.EncounterResponseDto{
 		Id: enc.Id, Title: enc.Title, Description: enc.Description,
 		Picture: enc.Picture, Longitude: enc.Longitude, Latitude: enc.Latitude,
-		Radius: enc.Radius, XpReward: int32(enc.XpReward), Status: encounter.EncounterResponseDto_EncounterStatus(enc.Status),
-	}, nil
+		Radius: enc.Radius, XpReward: int32(enc.XpReward), Status: encounter.EncounterResponseDto_EncounterStatus(enc.Status), Type: broj}, nil
 
 }
 func (s Server) CompleteMisc(ctx context.Context, request *encounter.EncounterInstanceId) (*encounter.TouristProgress, error) {
 	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo)
 	touristProgress, _ := encounterService.CompleteMiscEncounter(request.Id, request.EncounterId)
+	return &encounter.TouristProgress{
+		Xp:    int64(touristProgress.Xp),
+		Level: int64(touristProgress.Level)}, nil
+
+}
+func (s Server) CompleteSocialEncounter(ctx context.Context, request *encounter.TouristPosition) (*encounter.TouristProgress, error) {
+	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo)
+	newTouristProgress := model.TouristPosition{
+		Longitude: request.Longitude,
+		Latitude:  request.Latitude,
+		TouristId: request.TouristId}
+
+	touristProgress, _ := encounterService.CompleteSocialEncounter(request.EncounterId, &newTouristProgress)
 	return &encounter.TouristProgress{
 		Xp:    int64(touristProgress.Xp),
 		Level: int64(touristProgress.Level)}, nil

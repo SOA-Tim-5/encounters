@@ -189,8 +189,10 @@ func (service *EncounterService) CompleteSocialEncounter(encounterId int64, posi
 	instance, _ := service.EncounterInstanceRepo.GetEncounterInstance(encounterId, position.TouristId)
 	encounter, _ := service.EncounterRepo.GetSocialEncounter(encounterId)
 	var numberOfInstances int64 = service.EncounterInstanceRepo.GetNumberOfActiveInstances(encounterId)
+	println("AKTIVNIH INSTANCI")
+	print(numberOfInstances)
 	progress, _ := service.TouristProgressRepo.FindTouristProgressByTouristId(position.TouristId)
-	if instance.Status == model.Activated && encounter.Encounter.IsInRange(position.Longitude, position.Latitude) && encounter.IsEnoughPeople(int(numberOfInstances)) {
+	if encounter.Encounter.IsInRange(position.Longitude, position.Latitude) && encounter.IsEnoughPeople(int(numberOfInstances)) {
 		var err error
 		progress, err = service.Complete(instance, progress, position.TouristId, &encounter.Encounter)
 		if err != nil {
