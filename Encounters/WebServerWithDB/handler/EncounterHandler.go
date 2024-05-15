@@ -1,17 +1,92 @@
 package handler
 
 import (
-	"database-example/model"
 	"database-example/service"
-	"encoding/json"
-	"log"
-	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 )
+
+type EncounterHandler struct {
+	EncounterService *service.EncounterService
+	//encounter.UnimplementedEncounterServiceServer
+}
+
+/*
+	func NewEncounterHandler(encounterService *service.EncounterService) *EncounterHandler {
+		return &EncounterHandler{encounterService, encounter.UnimplementedEncounterServiceServer{}}
+	}
+*/
+func CreateId() int64 {
+	currentTimestamp := time.Now().UnixNano() / int64(time.Microsecond)
+	uniqueID := uuid.New().ID()
+	return currentTimestamp + int64(uniqueID)
+}
+
+/*
+func (h EncounterHandler) CreateMiscEncounter(ctx context.Context, request *encounter.EncounterRequest) (*encounter.Response, error) {
+	id := CreateId()
+	newMiscEncounter := model.MiscEncounter{
+		EncounterId: id,
+		Encounter: model.Encounter{Id: id, Title: request.GetEncounter().Title, Description: request.Encounter.Description,
+			Picture: request.Encounter.Picture, Longitude: request.Encounter.Longitude, Latitude: request.Encounter.Latitude,
+			Radius: request.Encounter.Radius, XpReward: int(request.Encounter.XpReward), Status: model.EncounterStatus(request.Encounter.Status),
+			Type: model.EncounterType(request.Encounter.Type)},
+		ChallengeDone: request.Encounter.ChallengeDone,
+	}
+	err := h.EncounterService.CreateMiscEncounter(&newMiscEncounter)
+	if err != nil {
+		println("Error while creating a new misc encounter")
+	}
+	return &encounter.MiscEncounterResponseDto{
+		Id: id, Title: request.GetEncounter().Title, Description: request.Encounter.Description,
+		Picture: request.Encounter.Picture, Longitude: request.Encounter.Longitude, Latitude: request.Encounter.Latitude,
+		Radius: request.Encounter.Radius, XpReward: int(request.Encounter.XpReward), Status: model.EncounterStatus(request.Encounter.Status),
+		Type: model.EncounterType(request.Encounter.Type), ChallengeDone: request.Encounter.ChallengeDone,
+	}, nil
+}
+
+/*
+		if err != nil {
+			println("Error while creating a new misc encounter")
+			writer.WriteHeader(http.StatusExpectationFailed)
+			return
+		}
+		writer.WriteHeader(http.StatusCreated)
+		writer.Header().Set("Content-Type", "application/json")
+
+
+
+/*
+func (h EncounterHandler) CreateMiscEncounter(ctx context.Context, request *greeter.Request) {
+	var miscEncounterDto model.MiscEncounterDto
+	err := json.NewDecoder(request.Name).Decode(&miscEncounterDto)
+	if err != nil {
+		println("Error while parsing json")
+		//writer.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	id := CreateId()
+	newMiscEncounter := model.MiscEncounter{
+		EncounterId: id,
+		Encounter: model.Encounter{Id: id, Title: miscEncounterDto.Title, Description: miscEncounterDto.Description,
+			Picture: miscEncounterDto.Picture, Longitude: miscEncounterDto.Longitude, Latitude: miscEncounterDto.Latitude,
+			Radius: miscEncounterDto.Radius, XpReward: miscEncounterDto.XpReward, Status: miscEncounterDto.Status,
+			Type: miscEncounterDto.Type},
+		ChallengeDone: miscEncounterDto.ChallengeDone,
+	}
+	err = handler.EncounterService.CreateMiscEncounter(&newMiscEncounter)
+	/*
+		if err != nil {
+			println("Error while creating a new misc encounter")
+			writer.WriteHeader(http.StatusExpectationFailed)
+			return
+		}
+		writer.WriteHeader(http.StatusCreated)
+		writer.Header().Set("Content-Type", "application/json")
+*/
+
+/*
 
 type EncounterHandler struct {
 	EncounterService *service.EncounterService
@@ -22,11 +97,7 @@ func NewEncounterHandler(encounterService *service.EncounterService, log *log.Lo
 	return &EncounterHandler{encounterService, log}
 }
 
-func CreateId() int64 {
-	currentTimestamp := time.Now().UnixNano() / int64(time.Microsecond)
-	uniqueID := uuid.New().ID()
-	return currentTimestamp + int64(uniqueID)
-}
+
 
 func (handler *EncounterHandler) CreateMiscEncounter(writer http.ResponseWriter, req *http.Request) {
 	var miscEncounterDto model.MiscEncounterDto
@@ -288,3 +359,4 @@ func (handler *EncounterHandler) CompleteSocialEncounter(writer http.ResponseWri
 	writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(touristProgress)
 }
+*/

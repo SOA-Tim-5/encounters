@@ -16,17 +16,20 @@ func NewEncounterInstanceService(ri *repo.EncounterInstanceRepository) *Encounte
 
 func (service *EncounterInstanceService) FindInstanceByUser(id int64, encounterid int64) (*model.EncounterInstanceDto, error) {
 	instances, err := service.EncounterInstanceRepo.FindInstancesByUserId(id)
+	println(len(*instances))
 	if err != nil {
 		return nil, fmt.Errorf(fmt.Sprintf("encounters not found"))
 	}
 	var foundedInstance model.EncounterInstance
 	for _, instance := range *instances {
-
 		if instance.EncounterId == encounterid {
 			foundedInstance = instance
 			fmt.Printf("%#v", foundedInstance)
 			break
 		}
+	}
+	if len(*instances) == 0 {
+		return nil, nil
 	}
 	instanceDto := model.EncounterInstanceDto{
 		UserId:         foundedInstance.UserId,
