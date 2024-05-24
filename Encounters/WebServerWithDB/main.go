@@ -91,9 +91,13 @@ func main() {
 
 	timeoutContext, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+	encounterAPIFile, err := os.OpenFile("loki-promtail-demo/var/encounter-api.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	encounterSTOREFile, err := os.OpenFile("loki-promtail-demo/var/encounter-store.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
-	logger := log.New(os.Stdout, "[encounter-api] ", log.LstdFlags)
-	storeLogger := log.New(os.Stdout, "[encounter-store] ", log.LstdFlags)
+	logger := log.New(encounterAPIFile, "[encounter-api] ", log.LstdFlags)
+	storeLogger := log.New(encounterSTOREFile, "[encounter-store] ", log.LstdFlags)
+	logger.Println("API")
+	logger.Println("STORE")
 
 	store, err := repo.New(timeoutContext, storeLogger)
 	if err != nil {

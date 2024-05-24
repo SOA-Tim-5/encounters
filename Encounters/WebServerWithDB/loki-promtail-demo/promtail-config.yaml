@@ -1,0 +1,26 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: encounter-api
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: encounter-api
+          __path__: /var/encounter-api.log
+
+  - job_name: encounter-store
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: encounter-store
+          __path__: /var/encounter-store.log
