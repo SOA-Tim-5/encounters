@@ -46,7 +46,8 @@ func IsInRangeOf(givenrange float64, longitude float64, latitude float64, userLo
 }
 
 func (encounter *Encounter) IsForActivating(userId int64, userLongitude float64, userLatitude float64) bool {
-	return encounter.Status == Active && encounter.IsInRange(userLongitude, userLatitude)
+	println(encounter.IsInRange(userLongitude, userLatitude))
+	return /*encounter.Status == Active && */ encounter.IsInRange(userLongitude, userLatitude)
 }
 
 func (encounter *Encounter) IsInRange(userLongitude float64, userLatitude float64) bool {

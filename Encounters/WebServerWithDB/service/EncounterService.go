@@ -48,12 +48,10 @@ func (service *EncounterService) CreateSocialEncounter(socialEncounter *model.So
 
 func (service *EncounterService) ActivateEncounter(encounterId int64, position *model.TouristPosition) *model.Encounter {
 	encounter, _ := service.EncounterRepo.FindEncounterById(encounterId)
-	fmt.Println("ff %d", encounter.Description)
 	if encounter.IsForActivating(position.TouristId, position.Longitude, position.Latitude) && !service.EncounterRepo.HasUserActivatedOrCompletedEncounter(encounterId, position.TouristId) {
 		var instance model.EncounterInstance = model.EncounterInstance{
 			Id: CreateId(), EncounterId: encounterId, UserId: position.TouristId, Status: model.Activated, CompletionTime: time.Now().UTC(),
 		}
-
 		err := service.EncounterInstanceRepo.CreateEncounterInstance(&instance)
 		//println(instance)
 		if err != nil {
@@ -162,6 +160,8 @@ func (service *EncounterService) FindAllDoneByUser(id int64) ([]*model.Encounter
 
 func (service *EncounterService) CompleteMiscEncounter(userid int64, encounterid int64) (*model.TouristProgressDto, error) {
 	foundedInstance, _ := service.EncounterInstanceRepo.GetEncounterInstance(encounterid, userid)
+	println("NASAO INSTANCU")
+	println(foundedInstance.Id)
 
 	service.EncounterInstanceRepo.UpdateEncounterInstance(model.Complete(foundedInstance))
 
@@ -190,8 +190,10 @@ func (service *EncounterService) CompleteSocialEncounter(encounterId int64, posi
 	instance, _ := service.EncounterInstanceRepo.GetEncounterInstance(encounterId, position.TouristId)
 	encounter, _ := service.EncounterRepo.GetSocialEncounter(encounterId)
 	var numberOfInstances int64 = service.EncounterInstanceRepo.GetNumberOfActiveInstances(encounterId)
+	println("AKTIVNIH INSTANCI")
+	print(numberOfInstances)
 	progress, _ := service.TouristProgressRepo.FindTouristProgressByTouristId(position.TouristId)
-	if instance.Status == model.Activated && encounter.Encounter.IsInRange(position.Longitude, position.Latitude) && encounter.IsEnoughPeople(int(numberOfInstances)) {
+	if encounter.Encounter.IsInRange(position.Longitude, position.Latitude) && encounter.IsEnoughPeople(int(numberOfInstances)) {
 		var err error
 		progress, err = service.Complete(instance, progress, position.TouristId, &encounter.Encounter)
 		if err != nil {
