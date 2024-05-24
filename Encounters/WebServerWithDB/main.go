@@ -14,7 +14,68 @@ import (
 
 	gorillaHandlers "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/disk"
+	"github.com/shirou/gopsutil/v3/mem"
+	"github.com/shirou/gopsutil/v3/net"
 )
+
+var (
+	cpuUsage = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "host_cpu_usage_percent",
+		Help: "Current CPU usage percentage",
+	})
+	memUsage = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "host_mem_usage_percent",
+		Help: "Current memory usage percentage",
+	})
+	diskUsage = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "host_disk_usage_percent",
+		Help: "Current disk usage percentage",
+	})
+	netSent = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "host_network_bytes_sent_total",
+		Help: "Total bytes sent over the network",
+	})
+	netRecv = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "host_network_bytes_received_total",
+		Help: "Total bytes received over the network",
+	})
+)
+
+func collectMetrics() {
+	for {
+		// Collect CPU usage
+		cpuPercent, err := cpu.Percent(time.Second, false)
+		if err == nil && len(cpuPercent) > 0 {
+			cpuUsage.Set(cpuPercent[0])
+		}
+
+		// Collect memory usage
+		virtualMem, err := mem.VirtualMemory()
+		if err == nil {
+			memUsage.Set(virtualMem.UsedPercent)
+		}
+
+		// Collect disk usage
+		diskInfo, err := disk.Usage("/")
+		if err == nil {
+			diskUsage.Set(diskInfo.UsedPercent)
+		}
+
+		// Collect network usage
+		netIO, err := net.IOCounters(false)
+		if err == nil && len(netIO) > 0 {
+			netSent.Add(float64(netIO[0].BytesSent))
+			netRecv.Add(float64(netIO[0].BytesRecv))
+		}
+
+		time.Sleep(10 * time.Second) // Adjust the collection interval as needed
+	}
+}
 
 func main() {
 
@@ -67,6 +128,9 @@ func main() {
 	router.HandleFunc("/encounters/complete/{id}", encounterHandler.CompleteHiddenLocationEncounter).Methods("POST")
 	router.HandleFunc("/encounters/complete/{encounterId}/social", encounterHandler.CompleteSocialEncounter).Methods("POST")
 
+	//Expose Prometheus metrics at /metrics
+	router.Handle("/metrics", promhttp.Handler())
+
 	cors := gorillaHandlers.CORS(gorillaHandlers.AllowedOrigins([]string{"*"}))
 
 	//Initialize the server
@@ -79,6 +143,10 @@ func main() {
 	}
 
 	logger.Println("Server listening on port", port)
+
+	// Start a goroutine to collect system metrics
+	go collectMetrics()
+
 	//Distribute all the connections to goroutines
 	go func() {
 		err := server.ListenAndServe()
