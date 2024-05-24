@@ -8,30 +8,36 @@ services:
   encounters:
     image: encounters
     restart: on-failure
-    networks:
-      - WebServerWithDB
-      - monitoring
     ports:
       - "81:81"
     environment:
+      # NoSQL: environment variable holding connection URI for Mongo database
+      # protocol://username:password@hostname:port
       - MONGO_DB_URI=mongodb://root:pass@mongo:27017
+      # - MONGO_INITDB_ROOT_USERNAME= root
+      # - MONGO_INITDB_ROOT_PASSWORD= pass
+      # - MONGO_DB_URI=mongodb://mongo:27017
+    # NoSQL: Our service will try to connect to Mongo before it is up
+    # in order to avoid that problem, we specify that it depends on mongo service
+    # which defines the order of starting the containers
+    # Additionaly we specify that mongo service needs to pass a healthcheck
+    logging: *fluent-bit
     depends_on:
       mongo:
         condition: service_healthy
 
+  
 # NoSQL: MongoDB
   mongo:
     image: mongo
     restart: always
-    networks:
-      - WebServerWithDB
-      - monitoring
     ports:
       - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: pass
       MONGO_INITDB_DATABASE: mongo
+    # Docker healtcheck - checks if database is "alive"
     healthcheck:
       test: echo 'db.runCommand("ping").ok'
       interval: 10s
@@ -39,12 +45,15 @@ services:
       retries: 10
     volumes:
       - mongo_store:/data/db
+    logging: *fluent-bit
 
-# NoSQL: Mongo Express
+
+  # NoSQL: MognoExpress
   mongo-express:
     image: mongo-express
     restart: always
     environment:
+      # hostname of mongo databse
       - ME_CONFIG_MONGODB_SERVER=mongo
       - ME_CONFIG_MONGODB_ADMINUSERNAME=root
       - ME_CONFIG_MONGODB_ADMINPASSWORD=pass
@@ -55,11 +64,11 @@ services:
       - "8081:8081"
     volumes:
       - mongo_express_data:/data/db
+    logging: *fluent-bit
+
 
 volumes:
   mongo_store:
   mongo_express_data:
 
 networks:
-  WebServerWithDB:
-  monitoring:

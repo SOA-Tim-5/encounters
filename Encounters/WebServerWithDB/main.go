@@ -102,6 +102,8 @@ func main() {
 	defer store.Disconnect(timeoutContext)
 
 	store.Ping()
+	logger.Print("Message")
+	logger.Println("PORUKA")
 
 	encounterRepo := repo.NewEncounterRepository(store)
 	encounterInstanceRepo := repo.NewEncounterInstanceRepository(store)
