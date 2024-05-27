@@ -1,4 +1,3 @@
-version: '3.9'
 x-logging: &fluent-bit
   driver: fluentd
   options:
@@ -11,6 +10,7 @@ services:
     networks:
       - WebServerWithDB
       - monitoring
+    logging: *fluent-bit
     ports:
       - "81:81"
     environment:
@@ -26,6 +26,7 @@ services:
     networks:
       - WebServerWithDB
       - monitoring
+    logging: *fluent-bit
     ports:
       - "27017:27017"
     environment:
@@ -51,6 +52,7 @@ services:
       - ME_CONFIG_MONGODB_URL=mongodb://root:pass@mongo:27017/
     depends_on:
       - mongo
+    logging: *fluent-bit
     ports:
       - "8081:8081"
     volumes:
@@ -62,4 +64,7 @@ volumes:
 
 networks:
   WebServerWithDB:
+    name: WebServerWithDB
+    driver: bridge
   monitoring:
+    external: true

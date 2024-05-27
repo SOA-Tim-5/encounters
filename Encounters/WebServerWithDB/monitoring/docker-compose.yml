@@ -19,7 +19,7 @@ services:
       - monitoring
 
   renderer:
-    image: grafana/grafana-image-renderer:3.4.2
+    image: grafana/grafana-image-renderer:3.10.5
     environment:
       ENABLE_METRICS: "true"
     networks:
