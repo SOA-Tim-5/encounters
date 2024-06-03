@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"database-example/config"
+	"database-example/handler"
 	"database-example/model"
 	"database-example/proto/encounter"
 	"database-example/repo"
@@ -11,6 +13,8 @@ import (
 	"os"
 	"time"
 
+	saga "github.com/SOA-Tim-5/common/common/saga/messaging"
+	"github.com/SOA-Tim-5/common/common/saga/messaging/nats"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -181,8 +185,15 @@ func main() {
 
 	var opts []grpc.ServerOption
 	grpcServer := grpc.NewServer(opts...)
+	config := config.GetConfig()
+	server := Server{EncounterRepo: encounterRepo, EncounterInstanceRepo: encounterInstanceRepo, TouristProgressRepo: toristProgressRepo, config: &config}
 
-	encounter.RegisterEncounterServer(grpcServer, Server{EncounterRepo: encounterRepo, EncounterInstanceRepo: encounterInstanceRepo, TouristProgressRepo: toristProgressRepo})
+	commandSubscriber := initSubscriber(&server, config.CreateOrderCommandSubject, QueueGroup)
+	replyPublisher := initPublisher(&server, server.config.CreateOrderReplySubject)
+	orchestrator = initCompleteEncounterOrchestrator(&server, replyPublisher, commandSubscriber)
+	initCreateOrderHandler(&server, service.NewEncounterService(encounterRepo, encounterInstanceRepo, toristProgressRepo, orchestrator), replyPublisher, commandSubscriber)
+
+	encounter.RegisterEncounterServer(grpcServer, server)
 	reflection.Register(grpcServer)
 	grpcServer.Serve(lis)
 
@@ -193,7 +204,14 @@ type Server struct {
 	EncounterRepo         *repo.EncounterRepository
 	EncounterInstanceRepo *repo.EncounterInstanceRepository
 	TouristProgressRepo   *repo.TouristProgressRepository
+	config                *config.Config
 }
+
+var orchestrator *service.CompleteEncounterOrchestrator
+
+const (
+	QueueGroup = "encounter_service"
+)
 
 func CreateId() int64 {
 	currentTimestamp := time.Now().UnixNano() / int64(time.Microsecond)
@@ -212,7 +230,7 @@ func (s Server) CreateMiscEncounter(ctx context.Context, request *encounter.Misc
 			Type: model.Misc},
 		ChallengeDone: request.ChallengeDone,
 	}
-	encounterService := service.NewEncounterService(s.EncounterRepo, nil, nil)
+	encounterService := service.NewEncounterService(s.EncounterRepo, nil, nil, orchestrator)
 	err := encounterService.CreateMiscEncounter(&newMiscEncounter)
 	if err != nil {
 		println("Error while creating a new misc encounter")
@@ -238,7 +256,7 @@ func (s Server) CreateSocialEncounter(ctx context.Context, socialEncounterDto *e
 			Type: 0},
 		PeopleNumber: int(socialEncounterDto.PeopleNumber),
 	}
-	encounterService := service.NewEncounterService(s.EncounterRepo, nil, nil)
+	encounterService := service.NewEncounterService(s.EncounterRepo, nil, nil, orchestrator)
 	err := encounterService.CreateSocialEncounter(&newSocialEncounter)
 	if err != nil {
 		println("Error while creating a new social encounter")
@@ -264,7 +282,7 @@ func (s Server) CreateHiddenLocationEncounter(ctx context.Context, hiddenLocatio
 		PictureLongitude: hiddenLocationEncounterDto.PictureLongitude,
 		PictureLatitude:  hiddenLocationEncounterDto.PictureLatitude,
 	}
-	encounterService := service.NewEncounterService(s.EncounterRepo, nil, nil)
+	encounterService := service.NewEncounterService(s.EncounterRepo, nil, nil, orchestrator)
 	err := encounterService.CreateHiddenLocationEncounter(&newHiddenLocationEncounter)
 	if err != nil {
 		println("Error while creating a new hidden location encounter")
@@ -278,7 +296,7 @@ func (s Server) CreateHiddenLocationEncounter(ctx context.Context, hiddenLocatio
 	}, nil
 }
 func (s Server) FindAllInRangeOf(ctx context.Context, request *encounter.UserPositionWithRange) (*encounter.ListEncounterResponseDto, error) {
-	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo)
+	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo, orchestrator)
 	encounters, err := encounterService.FindAllInRangeOf(request.Range, request.Longitude, request.Latitude)
 	if err != nil {
 		return nil, err
@@ -370,7 +388,7 @@ func (s Server) Activate(ctx context.Context, request *encounter.TouristPosition
 	println(touristPosition.Latitude)
 	println(request.EncounterId)
 
-	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo)
+	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo, orchestrator)
 	enc := encounterService.ActivateEncounter(request.EncounterId, &touristPosition)
 	if enc == nil {
 		println("Error while activating")
@@ -399,7 +417,7 @@ func (s Server) Activate(ctx context.Context, request *encounter.TouristPosition
 
 }
 func (s Server) CompleteMisc(ctx context.Context, request *encounter.EncounterInstanceId) (*encounter.TouristProgress, error) {
-	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo)
+	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo, orchestrator)
 	touristProgress, _ := encounterService.CompleteMiscEncounter(request.Id, request.EncounterId)
 	return &encounter.TouristProgress{
 		Xp:    int64(touristProgress.Xp),
@@ -407,7 +425,7 @@ func (s Server) CompleteMisc(ctx context.Context, request *encounter.EncounterIn
 
 }
 func (s Server) CompleteSocialEncounter(ctx context.Context, request *encounter.TouristPosition) (*encounter.TouristProgress, error) {
-	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo)
+	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo, orchestrator)
 	newTouristProgress := model.TouristPosition{
 		Longitude: request.Longitude,
 		Latitude:  request.Latitude,
@@ -420,7 +438,7 @@ func (s Server) CompleteSocialEncounter(ctx context.Context, request *encounter.
 
 }
 func (s Server) CompleteHiddenLocationEncounter(ctx context.Context, request *encounter.TouristPosition) (*encounter.Inrange, error) {
-	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo)
+	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo, orchestrator)
 	newTouristProgress := model.TouristPosition{
 		Longitude: request.Longitude,
 		Latitude:  request.Latitude,
@@ -430,7 +448,7 @@ func (s Server) CompleteHiddenLocationEncounter(ctx context.Context, request *en
 	return &encounter.Inrange{In: true}, nil
 }
 func (s Server) IsUserInCompletitionRange(ctx context.Context, request *encounter.Position) (*encounter.Inrange, error) {
-	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo)
+	encounterService := service.NewEncounterService(s.EncounterRepo, s.EncounterInstanceRepo, s.TouristProgressRepo, orchestrator)
 	isUserInCompletitionRange := encounterService.IsUserInCompletitionRange(request.Id, request.Longitude, request.Latitude)
 	return &encounter.Inrange{
 		In: isUserInCompletitionRange}, nil
@@ -444,4 +462,39 @@ func (s Server) FindTouristProgressByTouristId(ctx context.Context, request *enc
 		Xp:    int64(touristProgress.Xp),
 		Level: int64(touristProgress.Level)}, nil
 
+}
+
+func initPublisher(server *Server, subject string) saga.Publisher {
+	publisher, err := nats.NewNATSPublisher(
+		server.config.NatsHost, server.config.NatsPort,
+		server.config.NatsUser, server.config.NatsPass, subject)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return publisher
+}
+
+func initSubscriber(server *Server, subject, queueGroup string) saga.Subscriber {
+	subscriber, err := nats.NewNATSSubscriber(
+		server.config.NatsHost, server.config.NatsPort,
+		server.config.NatsUser, server.config.NatsPass, subject, queueGroup)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return subscriber
+}
+
+func initCompleteEncounterOrchestrator(server *Server, publisher saga.Publisher, subscriber saga.Subscriber) *service.CompleteEncounterOrchestrator {
+	orchestrator, err := service.NewCompleteEncounterOrchestrator(publisher, subscriber)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return orchestrator
+}
+
+func initCreateOrderHandler(server *Server, service *service.EncounterService, publisher saga.Publisher, subscriber saga.Subscriber) {
+	_, err := handler.NewCompleteEncounterCommandHandler(service, publisher, subscriber)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

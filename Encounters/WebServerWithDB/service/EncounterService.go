@@ -10,13 +10,14 @@ import (
 )
 
 type EncounterService struct {
-	EncounterRepo         *repo.EncounterRepository
-	EncounterInstanceRepo *repo.EncounterInstanceRepository
-	TouristProgressRepo   *repo.TouristProgressRepository
+	EncounterRepo                 *repo.EncounterRepository
+	EncounterInstanceRepo         *repo.EncounterInstanceRepository
+	TouristProgressRepo           *repo.TouristProgressRepository
+	CompleteEncounterOrchestrator *CompleteEncounterOrchestrator
 }
 
-func NewEncounterService(re *repo.EncounterRepository, ri *repo.EncounterInstanceRepository, rtp *repo.TouristProgressRepository) *EncounterService {
-	return &EncounterService{re, ri, rtp}
+func NewEncounterService(re *repo.EncounterRepository, ri *repo.EncounterInstanceRepository, rtp *repo.TouristProgressRepository, o *CompleteEncounterOrchestrator) *EncounterService {
+	return &EncounterService{re, ri, rtp, o}
 }
 
 func (service *EncounterService) CreateMiscEncounter(miscEncounter *model.MiscEncounter) error {
@@ -183,6 +184,7 @@ func (service *EncounterService) CompleteMiscEncounter(userid int64, encounterid
 		Xp:    AddedXpTouristProgress.Xp,
 		Level: AddedXpTouristProgress.Level,
 	}
+	Start(&CompleteEncounterOrchestrator{commandPublisher: service.CompleteEncounterOrchestrator.commandPublisher, replySubscriber: service.CompleteEncounterOrchestrator.replySubscriber}, touristProgress, encounterid)
 	return &touristProgressDto, nil
 }
 
@@ -257,4 +259,13 @@ func CreateId() int64 {
 	currentTimestamp := time.Now().UnixNano() / int64(time.Microsecond)
 	uniqueID := uuid.New().ID()
 	return currentTimestamp + int64(uniqueID)
+}
+
+func (service *EncounterService) RollbackCompletitionEncounter(encounterId int64) {
+	encounter, _ := service.EncounterInstanceRepo.Get(encounterId)
+
+	encounter.Status = model.Activated
+	service.EncounterInstanceRepo.UpdateEncounterInstance(encounter)
+	//println(instance)
+
 }

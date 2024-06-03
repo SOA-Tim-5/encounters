@@ -143,3 +143,18 @@ func (repo *EncounterInstanceRepository) GetActiveInstances(encounterId int64) (
 
 	return &instances, nil
 }
+
+func (repo *EncounterInstanceRepository) Get(id int64) (*model.EncounterInstance, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	intsancesCollection := repo.getEncounterInstanceCollection()
+
+	var instance model.EncounterInstance
+	err := intsancesCollection.FindOne(ctx, bson.M{"id": id}).Decode(&instance)
+	if err != nil {
+		repo.store.logger.Println(err)
+		return nil, err
+	}
+	return &instance, nil
+}
